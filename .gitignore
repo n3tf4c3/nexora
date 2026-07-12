@@ -1,0 +1,22 @@
+# deps
+node_modules/
+
+# builds
+.next/
+out/
+dist/
+.expo/
+*.tsbuildinfo
+
+# env
+.env
+.env.*
+!.env.example
+
+# projeto
+relatorios/
+backups/
+
+# so
+.DS_Store
+Thumbs.db
