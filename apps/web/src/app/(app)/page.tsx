@@ -145,9 +145,10 @@ export default async function Dashboard({
       rotulo: "Saldo",
       valor: formatarCentavos(saldo),
       icone: <IconeSaldo />,
-      corIcone: "var(--color-accent)",
-      fundoIcone: "var(--color-accent-100)",
+      corIcone: "var(--color-accent-300)",
+      fundoIcone: "var(--marca-escuro-suave)",
       delta: delta(saldo, entradasAnterior - saidasAnterior, false),
+      escuro: true,
     },
   ];
 
@@ -183,7 +184,7 @@ export default async function Dashboard({
       <div className="mx-auto w-full max-w-[1160px] p-6">
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           {cartoes.map((c) => (
-            <div key={c.rotulo} className="card">
+            <div key={c.rotulo} className={`card${c.escuro ? " card-marca" : ""}`}>
               <div
                 className="flex h-[34px] w-[34px] items-center justify-center rounded-(--radius-sm)"
                 style={{ background: c.fundoIcone, color: c.corIcone }}

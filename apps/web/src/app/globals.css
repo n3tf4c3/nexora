@@ -292,6 +292,44 @@ select.input {
   background: var(--color-accent-100);
 }
 
+/* — navegação escura (identidade da tela de login) — */
+.nav-escura .link-nav {
+  color: rgba(255, 255, 255, 0.66);
+}
+.nav-escura .link-nav:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+.nav-escura .link-nav.ativo {
+  background: var(--marca-escuro-suave);
+  color: #fff;
+  box-shadow: inset 2px 0 0 var(--marca-acento);
+}
+.nav-escura .input {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.nav-escura .input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.nav-escura .input:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.nav-escura .input:focus-visible {
+  border-color: var(--marca-acento);
+}
+
+/* — card escuro de marca (dashboard) — */
+.card-marca {
+  background: var(--marca-escuro);
+  border-color: var(--marca-escuro);
+  color: #fff;
+}
+.card-marca .card-kicker {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 /* — marca — */
 .fonte-marca {
   font-family: var(--font-brand, var(--font-heading));
