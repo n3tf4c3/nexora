@@ -14,7 +14,7 @@ Decisões-fundação (não reabrir sem motivo):
 
 ## Estado atual
 
-Fase 0 (fundação) concluída: esqueleto do monorepo com login funcionando. Próxima: Fase 1 — núcleo financeiro na web (contas, categorias, transações manuais, dashboard do mês).
+Fase 1 (núcleo financeiro web) concluída: contas, categorias, transações manuais e dashboard do mês, em produção. Próxima: Fase 2 — captura por SMS no Android (dev client + módulo nativo, parsers no core, fila de confirmação na web). Antes de escrever parsers, coletar amostras reais dos SMS dos bancos do usuário.
 
 ## Comandos (raiz)
 
