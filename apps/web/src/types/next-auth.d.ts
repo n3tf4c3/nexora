@@ -6,6 +6,12 @@ declare module "next-auth" {
     /** Epoch ms de credenciais_atualizadas_em no momento do login. */
     credAt?: number;
   }
+  interface Session {
+    user: {
+      id: string;
+      email?: string | null;
+    };
+  }
 }
 
 declare module "next-auth/jwt" {
