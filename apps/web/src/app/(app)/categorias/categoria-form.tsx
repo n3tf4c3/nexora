@@ -13,15 +13,14 @@ export function CategoriaForm() {
   }, [estado]);
 
   return (
-    <form ref={formRef} action={agir} className="space-y-3 rounded border border-neutral-200 p-4">
-      <h2 className="text-sm font-medium">Nova categoria</h2>
-      <div className="flex gap-3">
-        <input name="nome" placeholder="Nome" required className={campo} />
-        <button type="submit" disabled={pendente} className={botaoPrimario}>
-          {pendente ? "Criando..." : "Criar"}
+    <form ref={formRef} action={agir} className="mb-4">
+      <div className="flex gap-2">
+        <input name="nome" placeholder="Ex.: Educação" required className={campo} />
+        <button type="submit" disabled={pendente} className={`${botaoPrimario} whitespace-nowrap`}>
+          {pendente ? "Adicionando..." : "Adicionar"}
         </button>
       </div>
-      {estado.erro && <p className="text-sm text-red-600">{estado.erro}</p>}
+      {estado.erro && <p className="mt-2 mb-0 text-sm text-(--color-error)">{estado.erro}</p>}
     </form>
   );
 }

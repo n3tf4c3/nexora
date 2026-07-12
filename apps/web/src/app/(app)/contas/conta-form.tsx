@@ -21,42 +21,61 @@ export function ContaForm() {
   }, [estado]);
 
   return (
-    <form ref={formRef} action={agir} className="space-y-3 rounded border border-neutral-200 p-4">
-      <h2 className="text-sm font-medium">Nova conta</h2>
-      <div className="flex gap-3">
-        <input name="nome" placeholder="Nome" required className={campo} />
-        <select name="tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} className={campo}>
+    <form
+      id="nova-conta"
+      ref={formRef}
+      action={agir}
+      className="mb-4 grid grid-cols-1 items-end gap-2 md:grid-cols-2"
+    >
+      <div className="field md:col-span-2">
+        <label>Nome</label>
+        <input name="nome" placeholder="Ex.: Banco do Brasil" required className={campo} />
+      </div>
+      <div className="field">
+        <label>Tipo</label>
+        <select
+          name="tipo"
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+          className={campo}
+        >
           <option value="corrente">Conta corrente</option>
           <option value="carteira">Carteira</option>
           <option value="cartao_credito">Cartão de crédito</option>
         </select>
       </div>
-      {tipo === "cartao_credito" && (
-        <div className="flex gap-3">
-          <input
-            name="diaFechamento"
-            type="number"
-            min={1}
-            max={31}
-            placeholder="Dia de fechamento"
-            required
-            className={campo}
-          />
-          <input
-            name="diaVencimento"
-            type="number"
-            min={1}
-            max={31}
-            placeholder="Dia de vencimento"
-            required
-            className={campo}
-          />
-        </div>
-      )}
-      {estado.erro && <p className="text-sm text-red-600">{estado.erro}</p>}
       <button type="submit" disabled={pendente} className={botaoPrimario}>
-        {pendente ? "Criando..." : "Criar conta"}
+        {pendente ? "Adicionando..." : "Adicionar"}
       </button>
+      {tipo === "cartao_credito" && (
+        <>
+          <div className="field">
+            <label>Fecha dia</label>
+            <input
+              name="diaFechamento"
+              type="number"
+              min={1}
+              max={31}
+              required
+              className={campo}
+            />
+          </div>
+          <div className="field">
+            <label>Vence dia</label>
+            <input
+              name="diaVencimento"
+              type="number"
+              min={1}
+              max={31}
+              required
+              className={campo}
+            />
+          </div>
+        </>
+      )}
+      {estado.erro && (
+        <p className="m-0 text-sm text-(--color-error) md:col-span-2">{estado.erro}</p>
+      )}
     </form>
   );
 }

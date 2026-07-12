@@ -23,7 +23,7 @@ export async function criarCategoria(
     if (codigoSql(erro) === "23505") return { erro: "Já existe uma categoria com esse nome." };
     throw erro;
   }
-  revalidatePath("/categorias");
+  revalidatePath("/contas");
   return { ok: true };
 }
 
@@ -36,10 +36,10 @@ export async function excluirCategoria(id: string): Promise<void> {
   } catch (erro) {
     if (codigoSql(erro) === "23503") {
       redirect(
-        "/categorias?erro=" + encodeURIComponent("Categoria em uso por transações não pode ser excluída."),
+        "/contas?erro=" + encodeURIComponent("Categoria em uso por transações não pode ser excluída."),
       );
     }
     throw erro;
   }
-  revalidatePath("/categorias");
+  revalidatePath("/contas");
 }

@@ -1,1 +1,319 @@
 @import "tailwindcss";
+
+/* Tokens do design (handoff Claude Design "Nexora: Telas financeiras"). */
+:root {
+  --color-bg: #f7f7f9;
+  --color-surface: #ffffff;
+  --color-text: #171717;
+  --color-accent: #6c5ce7;
+  --color-divider: #ececf0;
+
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #ececf0;
+  --color-neutral-300: #d4d4d8;
+  --color-neutral-400: #a3a3a8;
+  --color-neutral-500: #737378;
+  --color-neutral-600: #525258;
+  --color-neutral-700: #404046;
+  --color-neutral-800: #262629;
+  --color-neutral-900: #171717;
+
+  --color-accent-100: #eeecfd;
+  --color-accent-200: #ded9fb;
+  --color-accent-300: #c2b9f7;
+  --color-accent-400: #9d8ef2;
+  --color-accent-500: #6c5ce7;
+  --color-accent-600: #5c4bd6;
+  --color-accent-700: #4c3fb0;
+  --color-accent-800: #3d3389;
+  --color-accent-900: #2c2564;
+
+  --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading-weight: 700;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 1px 3px rgba(23, 23, 23, 0.07);
+  --shadow-md: 0 6px 20px rgba(23, 23, 23, 0.08);
+  --shadow-lg: 0 16px 40px rgba(23, 23, 23, 0.14);
+
+  /* Identidade Nexora — paleta "Violeta Noturno" (handoff Nexora Identidade). */
+  --marca-escuro: oklch(19% 0.03 290);
+  --marca-escuro-suave: oklch(25% 0.035 290);
+  --marca-acento: oklch(58% 0.19 290);
+  --marca-acento-suave: oklch(94% 0.02 290);
+  --marca-acento-2: oklch(64% 0.19 25);
+
+  --color-income: #008138;
+  --color-income-bg: #e8f6ec;
+  --color-expense: #bf000f;
+  --color-expense-bg: #fdeaec;
+  --color-error: #e40014;
+  --color-error-bg: #fef2f2;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* — links — */
+.link {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.link:hover {
+  opacity: 0.65;
+}
+.link-perigo {
+  color: var(--color-error);
+  font-size: 13px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.link-perigo:hover {
+  opacity: 0.7;
+}
+.text-muted {
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+/* — botões — */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: calc(var(--space-2) * 0.85) var(--space-3);
+  border-radius: var(--radius-md);
+}
+.btn svg {
+  display: block;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+.btn-primary:hover {
+  background: var(--color-accent-600);
+}
+.btn-primary:active {
+  background: var(--color-accent-700);
+}
+.btn-secondary {
+  border-color: var(--color-divider);
+}
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+
+/* — formulários — */
+.field > label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+}
+.input:hover {
+  border-color: color-mix(in srgb, var(--color-text) 45%, transparent);
+}
+.input:focus-visible {
+  border-color: var(--color-accent);
+  outline-offset: 0;
+}
+select.input {
+  appearance: none;
+  background-image: none;
+}
+.seg {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.seg-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.seg-opt input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.seg-opt + .seg-opt {
+  border-left: 1px solid var(--color-divider);
+}
+.seg-opt:has(input:checked) {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+.seg-opt:not(:has(input:checked)):hover {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+.seg-opt:has(input:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* — cards — */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-sm);
+}
+.card-kicker {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.card-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 17px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* — tabelas — */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  padding: var(--space-2);
+  border-bottom: 2px solid var(--color-divider);
+  font-weight: 600;
+}
+.table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-divider);
+}
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+
+/* — navegação lateral — */
+.link-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-neutral-700);
+  font-weight: 500;
+}
+.link-nav:hover {
+  background: var(--color-neutral-100);
+}
+.link-nav.ativo {
+  color: var(--color-accent);
+  font-weight: 700;
+  background: var(--color-accent-100);
+}
+
+/* — marca — */
+.fonte-marca {
+  font-family: var(--font-brand, var(--font-heading));
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.listras-marca {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.05) 0px,
+    rgba(0, 0, 0, 0.05) 2px,
+    transparent 2px,
+    transparent 12px
+  );
+}
+
+/* — estados vazios — */
+.estado-vazio {
+  border: 1px dashed var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--color-neutral-600);
+  background: var(--color-surface);
+}

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { criarTransacao } from "./actions";
 import { botaoPrimario, campo } from "@/components/estilos";
+import { IconeMais } from "@/components/icones";
 
 type Opcao = { id: string; nome: string };
 
@@ -23,40 +24,74 @@ export function TransacaoForm({
   }, [estado]);
 
   return (
-    <form ref={formRef} action={agir} className="space-y-3 rounded border border-neutral-200 p-4">
-      <h2 className="text-sm font-medium">Nova transação</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <select name="tipo" defaultValue="saida" className={campo}>
-          <option value="saida">Saída</option>
-          <option value="entrada">Entrada</option>
-        </select>
-        <input name="valor" placeholder="0,00" required inputMode="decimal" className={campo} />
-        <input name="data" type="date" defaultValue={hoje} required className={campo} />
-        <select name="contaId" required defaultValue="" className={campo}>
-          <option value="" disabled>
-            Conta…
-          </option>
-          {contas.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nome}
+    <form ref={formRef} action={agir}>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="field">
+          <label>Tipo</label>
+          <div className="seg">
+            <label className="seg-opt">
+              <input type="radio" name="tipo" value="saida" defaultChecked />
+              Saída
+            </label>
+            <label className="seg-opt">
+              <input type="radio" name="tipo" value="entrada" />
+              Entrada
+            </label>
+          </div>
+        </div>
+        <div className="field">
+          <label>Valor</label>
+          <input
+            name="valor"
+            placeholder="0,00"
+            required
+            inputMode="decimal"
+            className={campo}
+          />
+        </div>
+        <div className="field">
+          <label>Data</label>
+          <input name="data" type="date" defaultValue={hoje} required className={campo} />
+        </div>
+        <div className="field">
+          <label>Conta</label>
+          <select name="contaId" required defaultValue="" className={campo}>
+            <option value="" disabled>
+              Selecione
             </option>
-          ))}
-        </select>
+            {contas.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label>Categoria (opcional)</label>
+          <select name="categoriaId" defaultValue="" className={campo}>
+            <option value="">Nenhuma</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field md:col-span-3">
+          <label>Descrição</label>
+          <input
+            name="descricao"
+            placeholder="Ex.: Supermercado, aluguel, salário..."
+            className={campo}
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <select name="categoriaId" defaultValue="" className={campo}>
-          <option value="">Sem categoria</option>
-          {categorias.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nome}
-            </option>
-          ))}
-        </select>
-        <input name="descricao" placeholder="Descrição (opcional)" className={campo} />
-      </div>
-      {estado.erro && <p className="text-sm text-red-600">{estado.erro}</p>}
-      <button type="submit" disabled={pendente} className={botaoPrimario}>
-        {pendente ? "Lançando..." : "Lançar"}
+      {estado.erro && (
+        <p className="mt-3 mb-0 text-sm text-(--color-error)">{estado.erro}</p>
+      )}
+      <button type="submit" disabled={pendente} className={`${botaoPrimario} mt-3`}>
+        <IconeMais tamanho={15} traco={2.2} />
+        {pendente ? "Adicionando..." : "Adicionar"}
       </button>
     </form>
   );

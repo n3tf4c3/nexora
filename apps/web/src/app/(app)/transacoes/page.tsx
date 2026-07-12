@@ -1,16 +1,35 @@
 import Link from "next/link";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, transacoes } from "@/db/schema";
 import { botaoPerigo } from "@/components/estilos";
+import { IconeMais } from "@/components/icones";
+import { Topo } from "@/components/topo";
 import { hojeISO } from "@/lib/hoje";
 import { usuarioLogadoId } from "@/server/posse";
 import { excluirTransacao } from "./actions";
 import { TransacaoForm } from "./transacao-form";
 
-export default async function TransacoesPage() {
+export default async function TransacoesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const usuarioId = await usuarioLogadoId();
+  const { q } = await searchParams;
+  const busca = q?.trim() || "";
+
+  const filtro = busca
+    ? and(
+        eq(transacoes.usuarioId, usuarioId),
+        or(
+          ilike(transacoes.descricao, `%${busca}%`),
+          ilike(contas.nome, `%${busca}%`),
+          ilike(categorias.nome, `%${busca}%`),
+        ),
+      )
+    : eq(transacoes.usuarioId, usuarioId);
 
   const [listaContas, listaCategorias, lista] = await Promise.all([
     db
@@ -36,59 +55,134 @@ export default async function TransacoesPage() {
       .from(transacoes)
       .innerJoin(contas, eq(transacoes.contaId, contas.id))
       .leftJoin(categorias, eq(transacoes.categoriaId, categorias.id))
-      .where(eq(transacoes.usuarioId, usuarioId))
+      .where(filtro)
       .orderBy(desc(transacoes.data), desc(transacoes.criadoEm))
       .limit(100),
   ]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Transações</h1>
-      {listaContas.length === 0 ? (
-        <p className="text-sm text-neutral-500">
-          Crie uma <Link href="/contas" className="underline">conta</Link> antes de lançar transações.
-        </p>
-      ) : (
-        <TransacaoForm contas={listaContas} categorias={listaCategorias} hoje={hojeISO()} />
-      )}
-      {lista.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nenhuma transação ainda.</p>
-      ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 text-left text-neutral-500">
-              <th className="py-2 font-normal">Data</th>
-              <th className="py-2 font-normal">Descrição</th>
-              <th className="py-2 font-normal">Conta</th>
-              <th className="py-2 font-normal">Categoria</th>
-              <th className="py-2 text-right font-normal">Valor</th>
-              <th className="py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {lista.map((t) => (
-              <tr key={t.id} className="border-b border-neutral-100">
-                <td className="py-2 whitespace-nowrap">
-                  {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)}
-                </td>
-                <td className="py-2">{t.descricao ?? "—"}</td>
-                <td className="py-2">{t.conta}</td>
-                <td className="py-2">{t.categoria ?? "—"}</td>
-                <td
-                  className={`py-2 text-right whitespace-nowrap ${t.tipo === "entrada" ? "text-green-700" : "text-red-700"}`}
-                >
-                  {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
-                </td>
-                <td className="py-2 text-right">
-                  <form action={excluirTransacao.bind(null, t.id)}>
-                    <button className={botaoPerigo}>Excluir</button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    <>
+      <Topo titulo="Transações" subtitulo="Registro completo de entradas e saídas.">
+        <a href="#nova-transacao" className="btn btn-primary">
+          <IconeMais tamanho={15} traco={2.2} />
+          Nova transação
+        </a>
+      </Topo>
+
+      <div className="mx-auto w-full max-w-[1160px] p-6">
+        <div id="nova-transacao" className="card mb-6">
+          <h3 className="card-title mb-[2px]">Nova transação</h3>
+          {listaContas.length === 0 ? (
+            <p className="text-muted m-0 text-sm">
+              Crie uma{" "}
+              <Link href="/contas" className="link">
+                conta
+              </Link>{" "}
+              antes de lançar transações.
+            </p>
+          ) : (
+            <TransacaoForm contas={listaContas} categorias={listaCategorias} hoje={hojeISO()} />
+          )}
+        </div>
+
+        <div className="card">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="card-title">Todas as transações</h3>
+            {busca && (
+              <span className="text-[13px] text-(--color-neutral-600)">
+                Filtrando por &quot;{busca}&quot; —{" "}
+                <Link href="/transacoes" className="link">
+                  limpar
+                </Link>
+              </span>
+            )}
+          </div>
+
+          {lista.length === 0 ? (
+            <div className="estado-vazio">
+              {busca ? (
+                <p className="m-0">Nenhum resultado para &quot;{busca}&quot;.</p>
+              ) : (
+                <p className="m-0">Nenhuma transação registrada.</p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="hidden md:block">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Descrição</th>
+                      <th>Categoria</th>
+                      <th>Conta</th>
+                      <th className="text-right">Valor</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lista.map((t) => (
+                      <tr key={t.id}>
+                        <td className="whitespace-nowrap">
+                          {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)}
+                        </td>
+                        <td>{t.descricao ?? "—"}</td>
+                        <td>{t.categoria ?? "—"}</td>
+                        <td>{t.conta}</td>
+                        <td
+                          className="text-right font-semibold whitespace-nowrap"
+                          style={{
+                            color:
+                              t.tipo === "entrada"
+                                ? "var(--color-income)"
+                                : "var(--color-expense)",
+                          }}
+                        >
+                          {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
+                        </td>
+                        <td className="text-right">
+                          <form action={excluirTransacao.bind(null, t.id)}>
+                            <button className={botaoPerigo}>Excluir</button>
+                          </form>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="md:hidden">
+                {lista.map((t) => (
+                  <div key={t.id} className="border-b border-(--color-divider) py-[10px]">
+                    <div className="flex justify-between gap-2">
+                      <strong className="text-[14px]">{t.descricao ?? "—"}</strong>
+                      <span
+                        className="font-semibold whitespace-nowrap"
+                        style={{
+                          color:
+                            t.tipo === "entrada"
+                              ? "var(--color-income)"
+                              : "var(--color-expense)",
+                        }}
+                      >
+                        {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
+                      </span>
+                    </div>
+                    <div className="mb-1 text-[12px] text-(--color-neutral-600)">
+                      {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)} ·{" "}
+                      {t.categoria ?? "—"} · {t.conta}
+                    </div>
+                    <form action={excluirTransacao.bind(null, t.id)}>
+                      <button className={botaoPerigo} style={{ fontSize: 12 }}>
+                        Excluir
+                      </button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
