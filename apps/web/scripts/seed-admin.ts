@@ -15,13 +15,19 @@ if (!process.env.DATABASE_URL || !email || !senha) {
 
 const db = drizzle(neon(process.env.DATABASE_URL));
 
-const senhaHash = await bcrypt.hash(senha, 12);
-await db
-  .insert(usuarios)
-  .values({ email, senhaHash })
-  .onConflictDoUpdate({
-    target: usuarios.email,
-    set: { senhaHash, credenciaisAtualizadasEm: sql`now()` },
-  });
+async function main() {
+  const senhaHash = await bcrypt.hash(senha!, 12);
+  await db
+    .insert(usuarios)
+    .values({ email: email!, senhaHash })
+    .onConflictDoUpdate({
+      target: usuarios.email,
+      set: { senhaHash, credenciaisAtualizadasEm: sql`now()` },
+    });
+  console.log(`Usuário ${email} criado/atualizado.`);
+}
 
-console.log(`Usuário ${email} criado/atualizado.`);
+main().catch((erro) => {
+  console.error(erro);
+  process.exit(1);
+});
