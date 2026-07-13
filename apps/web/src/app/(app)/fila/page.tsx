@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categorias, contas, mensagensSms } from "@/db/schema";
 import { botaoPerigo } from "@/components/estilos";
@@ -10,11 +10,18 @@ import { ignorarSms } from "./actions";
 import { PendenciaForm } from "./pendencia-form";
 
 const FUSO = "America/Sao_Paulo";
+// Fila é revisada aos poucos; renderizar sem teto degrada com captura acumulada.
+const MAX_PENDENCIAS = 50;
 
 export default async function FilaPage() {
   const usuarioId = await usuarioLogadoId();
 
-  const [pendencias, listaContas, listaCategorias] = await Promise.all([
+  const filtroPendentes = and(
+    eq(mensagensSms.usuarioId, usuarioId),
+    eq(mensagensSms.status, "pendente"),
+  );
+
+  const [pendencias, [{ total }], listaContas, listaCategorias] = await Promise.all([
     db
       .select({
         id: mensagensSms.id,
@@ -23,8 +30,10 @@ export default async function FilaPage() {
         recebidaEm: mensagensSms.recebidaEm,
       })
       .from(mensagensSms)
-      .where(and(eq(mensagensSms.usuarioId, usuarioId), eq(mensagensSms.status, "pendente")))
-      .orderBy(asc(mensagensSms.recebidaEm)),
+      .where(filtroPendentes)
+      .orderBy(asc(mensagensSms.recebidaEm))
+      .limit(MAX_PENDENCIAS),
+    db.select({ total: count() }).from(mensagensSms).where(filtroPendentes),
     db
       .select({ id: contas.id, nome: contas.nome })
       .from(contas)
@@ -53,7 +62,14 @@ export default async function FilaPage() {
             </Link>
           </div>
         ) : (
-          pendencias.map((p) => (
+          <>
+            {total > pendencias.length && (
+              <p className="m-0 mb-4 text-[13px] text-(--color-neutral-600)">
+                Mostrando as {pendencias.length} pendências mais antigas de {total} — revise-as
+                para ver as demais.
+              </p>
+            )}
+            {pendencias.map((p) => (
             <div key={p.id} className="card mb-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 className="card-title m-0">{p.remetente}</h3>
@@ -84,7 +100,8 @@ export default async function FilaPage() {
                 <button className={botaoPerigo}>Ignorar este SMS</button>
               </form>
             </div>
-          ))
+            ))}
+          </>
         )}
       </div>
     </>

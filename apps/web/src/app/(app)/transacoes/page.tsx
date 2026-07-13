@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, transacoes } from "@/db/schema";
@@ -11,14 +11,17 @@ import { usuarioLogadoId } from "@/server/posse";
 import { excluirTransacao } from "./actions";
 import { TransacaoForm } from "./transacao-form";
 
+const POR_PAGINA = 50;
+
 export default async function TransacoesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; pagina?: string }>;
 }) {
   const usuarioId = await usuarioLogadoId();
-  const { q } = await searchParams;
+  const { q, pagina: paginaParam } = await searchParams;
   const busca = q?.trim() || "";
+  const pagina = Math.max(1, Number.parseInt(paginaParam ?? "1", 10) || 1);
 
   const filtro = busca
     ? and(
@@ -31,7 +34,7 @@ export default async function TransacoesPage({
       )
     : eq(transacoes.usuarioId, usuarioId);
 
-  const [listaContas, listaCategorias, lista] = await Promise.all([
+  const [listaContas, listaCategorias, lista, [{ total }]] = await Promise.all([
     db
       .select({ id: contas.id, nome: contas.nome })
       .from(contas)
@@ -57,8 +60,22 @@ export default async function TransacoesPage({
       .leftJoin(categorias, eq(transacoes.categoriaId, categorias.id))
       .where(filtro)
       .orderBy(desc(transacoes.data), desc(transacoes.criadoEm))
-      .limit(100),
+      .limit(POR_PAGINA)
+      .offset((pagina - 1) * POR_PAGINA),
+    db
+      .select({ total: count() })
+      .from(transacoes)
+      .innerJoin(contas, eq(transacoes.contaId, contas.id))
+      .leftJoin(categorias, eq(transacoes.categoriaId, categorias.id))
+      .where(filtro),
   ]);
+
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
+  const hrefPagina = (p: number) =>
+    `/transacoes?${new URLSearchParams({
+      ...(busca ? { q: busca } : {}),
+      ...(p > 1 ? { pagina: String(p) } : {}),
+    }).toString()}`.replace(/\?$/, "");
 
   return (
     <>
@@ -178,6 +195,24 @@ export default async function TransacoesPage({
                     </form>
                   </div>
                 ))}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-(--color-neutral-600)">
+                <span>
+                  {total} transaç{total === 1 ? "ão" : "ões"} — página {pagina} de{" "}
+                  {totalPaginas}
+                </span>
+                <span className="flex gap-4">
+                  {pagina > 1 && (
+                    <Link href={hrefPagina(pagina - 1)} className="link">
+                      ← Anterior
+                    </Link>
+                  )}
+                  {pagina < totalPaginas && (
+                    <Link href={hrefPagina(pagina + 1)} className="link">
+                      Próxima →
+                    </Link>
+                  )}
+                </span>
               </div>
             </>
           )}

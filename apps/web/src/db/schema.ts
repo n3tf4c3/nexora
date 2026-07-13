@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   check,
   date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -96,7 +97,13 @@ export const transacoes = pgTable(
     data: date("data").notNull(),
     criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [check("transacoes_valor_positivo_chk", sql`${t.valorCentavos} > 0`)],
+  (t) => [
+    check("transacoes_valor_positivo_chk", sql`${t.valorCentavos} > 0`),
+    // Consultas dominantes: listagem/dashboard por usuário e mês (achado 12).
+    index("transacoes_usuario_data_idx").on(t.usuarioId, t.data, t.criadoEm),
+    index("transacoes_conta_idx").on(t.contaId),
+    index("transacoes_categoria_idx").on(t.categoriaId),
+  ],
 );
 
 // SMS cru sempre persistido (auditoria e reprocessamento quando um parser melhorar).
@@ -132,5 +139,7 @@ export const mensagensSms = pgTable(
       "mensagens_sms_status_vinculo_chk",
       sql`(${t.status} = 'confirmada') = (${t.transacaoId} is not null)`,
     ),
+    // Fila: pendências por usuário em ordem de chegada (achado 12).
+    index("mensagens_sms_usuario_status_recebida_idx").on(t.usuarioId, t.status, t.recebidaEm),
   ],
 );
