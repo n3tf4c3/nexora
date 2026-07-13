@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: "postgres://dummy:dummy@localhost:5432/dummy"
-      AUTH_SECRET: "dummy-secret-para-build"
+      # Valor de CI, nunca de produção (env.ts rejeita marcador de exemplo em prod).
+      AUTH_SECRET: "dummy-secret-para-build-0000000000000000"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
