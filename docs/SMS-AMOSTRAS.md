@@ -53,6 +53,21 @@ Observações:
 - Atenção: bancos costumam usar **vários números curtos** conforme o evento —
   registrar o remetente de cada nova amostra; a allowlist pode precisar de mais de um.
 
+### Pix enviado
+
+- Remetente: `1482` (mesmo número curto do Pix recebido)
+- Coletada em: 2026-07-13 (primeira amostra a percorrer o ciclo completo de captura até a fila)
+- Evento: Pix enviado (valor, nome do recebedor, CPF mascarado pelo banco)
+- Sanitização: nome e dígitos visíveis do CPF substituídos por fictícios de mesmo comprimento.
+
+```
+Itau: Pix enviado no valor de R$ 2,00 para Maria, CPF XXX.123.456-XX.
+```
+
+Observações:
+- Mesmo esqueleto do Pix recebido, trocando `recebido ... de` por `enviado ... para` —
+  um parser único de Pix do Itaú cobre os dois, decidindo entrada/saída pela palavra.
+
 ## Cobertura por banco (levantado em 2026-07-13)
 
 Bancos do usuário: Nubank, Itaú e Banco do Brasil (além do Cartão Amazon acima).
@@ -67,6 +82,6 @@ Bancos do usuário: Nubank, Itaú e Banco do Brasil (além do Cartão Amazon aci
 ## Pendente de coleta
 
 - Cartão Amazon — SMS de **compra aprovada** (se existir; é o formato mais importante para a Fase 2) e o remetente da amostra de fatura.
-- Itaú — compra no crédito/débito, Pix enviado, TED; registrar o remetente de cada um (Pix recebido já coletado, remetente `1482`).
+- Itaú — compra no crédito/débito e TED; registrar o remetente de cada um (Pix recebido e enviado já coletados, remetente `1482`).
 - Banco do Brasil — compra no crédito/débito, Pix recebido/enviado, TED; registrar remetente.
 - Nubank — confirmar no app de Mensagens que não há SMS de compra (só OTP).

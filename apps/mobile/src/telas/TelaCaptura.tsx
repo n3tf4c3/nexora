@@ -139,7 +139,7 @@ export function TelaCaptura({ aoVoltar }: { aoVoltar: () => void }) {
               style={[estilos.campo, estilos.campoMultilinha]}
               value={remetentes}
               onChangeText={setRemetentes}
-              placeholder={'Itau\nBB\nAmazon'}
+              placeholder={'ex.: 1482\n(vazio = nada é capturado)'}
               placeholderTextColor={cores.neutro500}
               autoCapitalize="none"
               autoCorrect={false}
@@ -154,6 +154,9 @@ export function TelaCaptura({ aoVoltar }: { aoVoltar: () => void }) {
             <View style={estilos.estado}>
               <Text style={estilos.rotulo}>Estado</Text>
               <Text style={estilos.estadoLinha}>Token: {estado?.temToken ? 'salvo' : 'ausente'}</Text>
+              <Text style={estilos.estadoLinha}>
+                Remetentes salvos: {estado && estado.remetentes.length > 0 ? estado.remetentes.join(', ') : 'nenhum — nada será capturado'}
+              </Text>
               <Text style={estilos.estadoLinha}>SMS aguardando envio: {estado?.pendentes ?? 0}</Text>
             </View>
 
