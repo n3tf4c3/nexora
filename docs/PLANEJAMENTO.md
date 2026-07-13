@@ -37,7 +37,7 @@ packages/core (domínio puro, testável)
 Pontos de desenho importantes:
 
 - **SMS cru sempre é guardado** (`raw_messages`): permite reprocessar quando um parser melhora e auditar o que foi capturado.
-- **Deduplicação** por hash do corpo + remetente + janela temporal (SMS duplicado ou reenvio não vira transação dupla).
+- **Deduplicação** por hash de remetente + instante exato de recebimento + corpo (reenvio/retry do app não duplica). Decisão (achado 10 da auditoria de 2026-07-13): janela temporal foi descartada porque fundiria compras idênticas legítimas feitas em instantes próximos; o retry do app reenvia o mesmo timestamp, então o caso real de duplicação está coberto. Evolução natural na Fase 2: usar o identificador estável do SMS fornecido pelo Android.
 - **Parser incerto → pendência**, nunca transação silenciosamente errada. A fila de confirmação é o mecanismo de segurança do sistema todo.
 - Expo managed não lê SMS: será necessário **dev client** com módulo nativo (ex.: config plugin próprio ou lib tipo `react-native-get-sms-android`), build via EAS ou local.
 

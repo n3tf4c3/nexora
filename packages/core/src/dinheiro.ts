@@ -1,5 +1,7 @@
 // Valores monetários circulam no sistema como inteiros em centavos (BRL).
 
+import { VALOR_CENTAVOS_MAX } from "./limites";
+
 export function formatarCentavos(centavos: number): string {
   return (centavos / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -14,10 +16,12 @@ export function formatarCentavos(centavos: number): string {
  * nunca como zero.
  */
 export function parsearValorBRL(texto: string): number | null {
-  const limpo = texto.replace(/R\$\s*/i, "").trim();
+  // Prefixo ancorado no início: "1R$ 2" não pode virar "12" (achado 11).
+  const limpo = texto.trim().replace(/^R\$\s*/i, "");
   if (!/^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(limpo)) {
     return null;
   }
   const [inteiros, decimais = ""] = limpo.replace(/\./g, "").split(",");
-  return Number(inteiros) * 100 + Number(decimais.padEnd(2, "0") || 0);
+  const centavos = Number(inteiros) * 100 + Number(decimais.padEnd(2, "0") || 0);
+  return centavos > VALOR_CENTAVOS_MAX ? null : centavos;
 }

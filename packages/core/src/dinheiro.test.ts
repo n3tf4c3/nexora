@@ -14,6 +14,16 @@ describe("parsearValorBRL", () => {
     expect(parsearValorBRL("12.34")).toBeNull();
     expect(parsearValorBRL("")).toBeNull();
   });
+
+  it("só aceita R$ ancorado no início (achado 11)", () => {
+    expect(parsearValorBRL("1R$ 2")).toBeNull();
+    expect(parsearValorBRL("  R$ 2,50")).toBe(250);
+  });
+
+  it("rejeita valores acima do integer do banco", () => {
+    expect(parsearValorBRL("21.474.836,47")).toBe(2_147_483_647);
+    expect(parsearValorBRL("21.474.836,48")).toBeNull();
+  });
 });
 
 describe("formatarCentavos", () => {

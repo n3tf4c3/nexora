@@ -102,6 +102,11 @@ describe("capturaSmsSchema", () => {
     expect(capturaSmsSchema.safeParse({ ...base, corpo: "  " }).success).toBe(false);
     expect(capturaSmsSchema.safeParse({ ...base, recebidaEm: "2026-07-13" }).success).toBe(false);
   });
+
+  it("preserva o texto cru byte a byte (sem trim)", () => {
+    const cru = "  Compra aprovada \n";
+    expect(capturaSmsSchema.parse({ ...base, corpo: cru }).corpo).toBe(cru);
+  });
 });
 
 describe("capturaLoteSchema", () => {

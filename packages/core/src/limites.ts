@@ -3,6 +3,8 @@
 export const NOME_CONTA_MAX = 60;
 export const NOME_CATEGORIA_MAX = 40;
 export const DESCRICAO_TRANSACAO_MAX = 200;
+// Teto do integer do PostgreSQL (R$ 21.474.836,47) — valores acima exigiriam bigint.
+export const VALOR_CENTAVOS_MAX = 2_147_483_647;
 
 // Captura de SMS (Fase 2).
 export const REMETENTE_SMS_MAX = 40;

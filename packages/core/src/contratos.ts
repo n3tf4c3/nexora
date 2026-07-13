@@ -6,6 +6,7 @@ import {
   NOME_CATEGORIA_MAX,
   NOME_CONTA_MAX,
   REMETENTE_SMS_MAX,
+  VALOR_CENTAVOS_MAX,
 } from "./limites";
 
 export const TIPOS_CONTA = ["corrente", "carteira", "cartao_credito"] as const;
@@ -48,9 +49,17 @@ export type CategoriaInput = z.infer<typeof categoriaInputSchema>;
 export const STATUS_MENSAGEM_SMS = ["pendente", "confirmada", "ignorada"] as const;
 export type StatusMensagemSms = (typeof STATUS_MENSAGEM_SMS)[number];
 
+// SMS cru é persistido byte a byte (sem trim/normalização — achado 10);
+// a validação só garante que não é vazio nem estoura o limite.
+const textoSmsCru = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .refine((s) => s.trim().length > 0, { message: "Não pode ser vazio." });
+
 export const capturaSmsSchema = z.object({
-  remetente: z.string().trim().min(1).max(REMETENTE_SMS_MAX),
-  corpo: z.string().trim().min(1).max(CORPO_SMS_MAX),
+  remetente: textoSmsCru(REMETENTE_SMS_MAX),
+  corpo: textoSmsCru(CORPO_SMS_MAX),
   // Instante em que o SMS chegou no aparelho (ISO com offset ou Z).
   recebidaEm: z.iso.datetime({ offset: true }),
 });
@@ -63,7 +72,7 @@ export type CapturaLote = z.infer<typeof capturaLoteSchema>;
 
 export const transacaoInputSchema = z.object({
   tipo: z.enum(TIPOS_TRANSACAO),
-  valorCentavos: z.number().int().positive(),
+  valorCentavos: z.number().int().positive().max(VALOR_CENTAVOS_MAX),
   descricao: z.string().trim().max(DESCRICAO_TRANSACAO_MAX).optional(),
   data: z.iso.date(),
   contaId: z.uuid(),
