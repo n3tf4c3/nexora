@@ -61,14 +61,11 @@ export default function InicioPage() {
           >
             Como funciona
           </a>
-          <Link href="/login" className="text-[14px] font-semibold text-(--color-neutral-700)">
-            Entrar
-          </Link>
           <Link
             href="/login"
             className="rounded-[10px] bg-(--marca-escuro) px-[18px] py-[10px] text-[14px] font-bold text-white hover:opacity-90"
           >
-            Criar conta grátis
+            Entrar
           </Link>
         </div>
       </header>
@@ -76,20 +73,21 @@ export default function InicioPage() {
       <div className="mx-auto grid max-w-[1160px] grid-cols-1 gap-12 px-8 pt-14 pb-22 text-center">
         <div className="mx-auto max-w-[720px]">
           <div className="mb-5 inline-block rounded-full bg-(--marca-acento-suave) px-[14px] py-[6px] text-[12px] font-extrabold tracking-[0.08em] text-(--marca-acento) uppercase">
-            Finanças automáticas
+            Financeiro pessoal
           </div>
           <h1 className="fonte-marca m-0 mb-5 text-[36px] leading-[1.08] tracking-[-0.02em] md:text-[52px]">
             As finanças da sua vida,
             <br />
-            organizadas sozinhas.
+            organizadas num só lugar.
           </h1>
           <p className="m-0 mb-8 text-[18px] leading-[1.6] text-(--color-neutral-700)">
-            Nexora lê os avisos do seu banco por SMS, sugere cada lançamento e mantém dashboard,
-            contas e categorias sempre em dia — você só confirma.
+            Entradas, saídas, contas e categorias num dashboard claro do seu mês. Em
+            desenvolvimento: captura automática dos avisos do seu banco por SMS — você só
+            confirma.
           </p>
           <div className="flex flex-wrap justify-center gap-[14px]">
             <Link href="/login" className={ctaPrimario}>
-              Criar conta grátis
+              Entrar
             </Link>
             <a
               href="#como-funciona"
@@ -101,10 +99,30 @@ export default function InicioPage() {
         </div>
 
         <div className="mx-auto w-full max-w-[960px]">
-          <div className="listras-marca flex h-[320px] w-full items-center justify-center rounded-[20px] border border-(--color-divider) bg-(--color-neutral-100) shadow-(--shadow-lg) md:h-[520px]">
-            <span className="rounded-[8px] border border-(--color-divider) bg-(--color-surface) px-3 py-[6px] font-mono text-[13px] text-(--color-neutral-500)">
-              [ dashboard preview screenshot ]
-            </span>
+          <div className="listras-marca flex h-[320px] w-full items-center justify-center rounded-[20px] border border-(--color-divider) bg-(--color-neutral-100) p-8 shadow-(--shadow-lg) md:h-[520px]">
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 520 260"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden
+            >
+              <polyline
+                points="20,220 110,170 200,195 290,110 380,130 500,45"
+                fill="none"
+                stroke="var(--marca-escuro)"
+                strokeOpacity="0.25"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="20" cy="220" r="9" fill="var(--marca-escuro)" fillOpacity="0.3" />
+              <circle cx="110" cy="170" r="9" fill="var(--marca-escuro)" fillOpacity="0.4" />
+              <circle cx="200" cy="195" r="10" fill="var(--marca-acento)" />
+              <circle cx="290" cy="110" r="9" fill="var(--marca-escuro)" fillOpacity="0.4" />
+              <circle cx="380" cy="130" r="9" fill="var(--marca-escuro)" fillOpacity="0.5" />
+              <circle cx="500" cy="45" r="13" fill="var(--marca-acento-2)" />
+            </svg>
           </div>
         </div>
       </div>
@@ -121,6 +139,10 @@ export default function InicioPage() {
             <h2 className="fonte-marca m-0 text-[28px] leading-[1.2] tracking-[-0.01em] md:text-[34px]">
               Da mensagem do banco ao seu dashboard, em três passos.
             </h2>
+            <p className="m-0 mt-4 text-[14px] text-(--color-neutral-600)">
+              A captura por SMS está em desenvolvimento (app Android) — hoje os lançamentos são
+              manuais.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -142,7 +164,7 @@ export default function InicioPage() {
 
           <div className="mt-12 text-center">
             <Link href="/login" className={ctaPrimario}>
-              Criar conta grátis
+              Entrar
             </Link>
           </div>
         </div>
