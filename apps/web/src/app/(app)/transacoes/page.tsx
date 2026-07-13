@@ -8,9 +8,10 @@ import { botaoPerigo } from "@/components/estilos";
 import { IconeMais } from "@/components/icones";
 import { Topo } from "@/components/topo";
 import { hojeISO } from "@/lib/hoje";
+import { uuidValido } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 import { excluirTransacao } from "./actions";
-import { TransacaoForm } from "./transacao-form";
+import { TransacaoForm, type TransacaoEditavel } from "./transacao-form";
 
 const POR_PAGINA = 50;
 const BUSCA_MAX = 80;
@@ -28,12 +29,18 @@ function escaparLike(texto: string): string {
 export default async function TransacoesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[]; pagina?: string | string[] }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    pagina?: string | string[];
+    editar?: string | string[];
+  }>;
 }) {
   const usuarioId = await usuarioLogadoId();
-  const { q, pagina: paginaParam } = await searchParams;
+  const { q, pagina: paginaParam, editar } = await searchParams;
   const busca = primeiroValor(q).trim().slice(0, BUSCA_MAX);
   const pagina = Math.max(1, Number.parseInt(primeiroValor(paginaParam) || "1", 10) || 1);
+  const editarParam = primeiroValor(editar);
+  const editarId = uuidValido(editarParam) ? editarParam : "";
 
   const padrao = `%${escaparLike(busca)}%`;
   const filtro = busca
@@ -67,6 +74,8 @@ export default async function TransacoesPage({
         descricao: transacoes.descricao,
         conta: contas.nome,
         categoria: categorias.nome,
+        contaId: transacoes.contaId,
+        categoriaId: transacoes.categoriaId,
       })
       .from(transacoes)
       .innerJoin(contas, eq(transacoes.contaId, contas.id))
@@ -151,16 +160,75 @@ export default async function TransacoesPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {lista.map((t) => (
-                      <tr key={t.id}>
-                        <td className="whitespace-nowrap">
-                          {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)}
-                        </td>
-                        <td>{t.descricao ?? "—"}</td>
-                        <td>{t.categoria ?? "—"}</td>
-                        <td>{t.conta}</td>
-                        <td
-                          className="text-right font-semibold whitespace-nowrap"
+                    {lista.map((t) =>
+                      t.id === editarId ? (
+                        <tr key={t.id}>
+                          <td colSpan={6} className="bg-(--color-neutral-100)">
+                            <TransacaoForm
+                              contas={listaContas}
+                              categorias={listaCategorias}
+                              hoje={hojeISO()}
+                              transacao={t satisfies TransacaoEditavel}
+                            />
+                          </td>
+                        </tr>
+                      ) : (
+                        <tr key={t.id}>
+                          <td className="whitespace-nowrap">
+                            {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)}
+                          </td>
+                          <td>{t.descricao ?? "—"}</td>
+                          <td>{t.categoria ?? "—"}</td>
+                          <td>{t.conta}</td>
+                          <td
+                            className="text-right font-semibold whitespace-nowrap"
+                            style={{
+                              color:
+                                t.tipo === "entrada"
+                                  ? "var(--color-income)"
+                                  : "var(--color-expense)",
+                            }}
+                          >
+                            {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
+                          </td>
+                          <td className="text-right">
+                            <span className="flex items-center justify-end gap-3">
+                              <Link href={`/transacoes?editar=${t.id}`} className="link text-[13px]">
+                                Editar
+                              </Link>
+                              <form action={excluirTransacao.bind(null, t.id)}>
+                                <BotaoConfirmar
+                                  mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
+                                  className={botaoPerigo}
+                                >
+                                  Excluir
+                                </BotaoConfirmar>
+                              </form>
+                            </span>
+                          </td>
+                        </tr>
+                      ),
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="md:hidden">
+                {lista.map((t) =>
+                  t.id === editarId ? (
+                    <div key={t.id} className="border-b border-(--color-divider) py-3">
+                      <TransacaoForm
+                        contas={listaContas}
+                        categorias={listaCategorias}
+                        hoje={hojeISO()}
+                        transacao={t satisfies TransacaoEditavel}
+                      />
+                    </div>
+                  ) : (
+                    <div key={t.id} className="border-b border-(--color-divider) py-[10px]">
+                      <div className="flex justify-between gap-2">
+                        <strong className="text-[14px]">{t.descricao ?? "—"}</strong>
+                        <span
+                          className="font-semibold whitespace-nowrap"
                           style={{
                             color:
                               t.tipo === "entrada"
@@ -169,54 +237,32 @@ export default async function TransacoesPage({
                           }}
                         >
                           {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
-                        </td>
-                        <td className="text-right">
-                          <form action={excluirTransacao.bind(null, t.id)}>
-                            <BotaoConfirmar
-                              mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
-                              className={botaoPerigo}
-                            >
-                              Excluir
-                            </BotaoConfirmar>
-                          </form>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="md:hidden">
-                {lista.map((t) => (
-                  <div key={t.id} className="border-b border-(--color-divider) py-[10px]">
-                    <div className="flex justify-between gap-2">
-                      <strong className="text-[14px]">{t.descricao ?? "—"}</strong>
-                      <span
-                        className="font-semibold whitespace-nowrap"
-                        style={{
-                          color:
-                            t.tipo === "entrada"
-                              ? "var(--color-income)"
-                              : "var(--color-expense)",
-                        }}
-                      >
-                        {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
+                        </span>
+                      </div>
+                      <div className="mb-1 text-[12px] text-(--color-neutral-600)">
+                        {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)} ·{" "}
+                        {t.categoria ?? "—"} · {t.conta}
+                      </div>
+                      <span className="flex items-center gap-3">
+                        <Link
+                          href={`/transacoes?editar=${t.id}`}
+                          className="link text-[12px]"
+                        >
+                          Editar
+                        </Link>
+                        <form action={excluirTransacao.bind(null, t.id)}>
+                          <BotaoConfirmar
+                            mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
+                            className={botaoPerigo}
+                            style={{ fontSize: 12 }}
+                          >
+                            Excluir
+                          </BotaoConfirmar>
+                        </form>
                       </span>
                     </div>
-                    <div className="mb-1 text-[12px] text-(--color-neutral-600)">
-                      {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)} ·{" "}
-                      {t.categoria ?? "—"} · {t.conta}
-                    </div>
-                    <form action={excluirTransacao.bind(null, t.id)}>
-                      <BotaoConfirmar
-                        mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
-                        className={botaoPerigo}
-                        style={{ fontSize: 12 }}
-                      >
-                        Excluir
-                      </BotaoConfirmar>
-                    </form>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-(--color-neutral-600)">
                 <span>

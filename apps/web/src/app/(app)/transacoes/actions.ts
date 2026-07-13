@@ -1,19 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
+import { parsearValorBRL, transacaoInputSchema, type TransacaoInput } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, mensagensSms, transacoes } from "@/db/schema";
 import { primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
-export async function criarTransacao(
-  _estado: EstadoForm,
+// Validação comum de criar/atualizar: valor BRL, schema do core e posse
+// da conta/categoria escolhidas.
+async function validarTransacao(
+  usuarioId: string,
   formData: FormData,
-): Promise<EstadoForm> {
-  const usuarioId = await usuarioLogadoId();
-
+): Promise<{ erro: string } | { dados: TransacaoInput }> {
   const valorCentavos = parsearValorBRL(String(formData.get("valor") ?? ""));
   if (valorCentavos === null || valorCentavos === 0) {
     return { erro: "Valor inválido — use o formato 1.234,56." };
@@ -45,10 +46,50 @@ export async function criarTransacao(
     if (!categoria) return { erro: "Categoria inválida." };
   }
 
-  await db.insert(transacoes).values({ usuarioId, ...parse.data });
+  return { dados: parse.data };
+}
+
+export async function criarTransacao(
+  _estado: EstadoForm,
+  formData: FormData,
+): Promise<EstadoForm> {
+  const usuarioId = await usuarioLogadoId();
+
+  const resultado = await validarTransacao(usuarioId, formData);
+  if ("erro" in resultado) return resultado;
+
+  await db.insert(transacoes).values({ usuarioId, ...resultado.dados });
   revalidatePath("/transacoes");
   revalidatePath("/");
   return { ok: true };
+}
+
+export async function atualizarTransacao(
+  id: string,
+  _estado: EstadoForm,
+  formData: FormData,
+): Promise<EstadoForm> {
+  const usuarioId = await usuarioLogadoId();
+  if (!uuidValido(id)) return { erro: "Transação inválida." };
+
+  const resultado = await validarTransacao(usuarioId, formData);
+  if ("erro" in resultado) return resultado;
+
+  // Campos opcionais limpos viram null explícito — undefined não sobrescreve no UPDATE.
+  const atualizadas = await db
+    .update(transacoes)
+    .set({
+      ...resultado.dados,
+      descricao: resultado.dados.descricao ?? null,
+      categoriaId: resultado.dados.categoriaId ?? null,
+    })
+    .where(and(eq(transacoes.id, id), eq(transacoes.usuarioId, usuarioId)))
+    .returning({ id: transacoes.id });
+  if (atualizadas.length === 0) return { erro: "Transação não encontrada." };
+
+  revalidatePath("/transacoes");
+  revalidatePath("/");
+  redirect("/transacoes");
 }
 
 export async function excluirTransacao(id: string): Promise<void> {
