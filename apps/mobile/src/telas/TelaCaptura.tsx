@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   PermissionsAndroid,
   Platform,
   Pressable,
@@ -10,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconeVoltar } from '../componentes/Icones';
 import { obterCapturaSms, type EstadoCaptura } from '../../modules/captura-sms/src/CapturaSmsModule';
 import { cores, fontes } from '../tema';
@@ -18,6 +20,7 @@ const capturaSms = obterCapturaSms();
 
 /** Configuração da captura de SMS — a única tela ligada ao módulo nativo. */
 export function TelaCaptura({ aoVoltar }: { aoVoltar: () => void }) {
+  const insets = useSafeAreaInsets();
   const [permissaoOk, setPermissaoOk] = useState(false);
   const [estado, setEstado] = useState<EstadoCaptura | null>(null);
   const [urlApi, setUrlApi] = useState('');
@@ -73,8 +76,9 @@ export function TelaCaptura({ aoVoltar }: { aoVoltar: () => void }) {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: cores.fundo }}>
-      <View style={estilos.cabecalho}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+    <ScrollView style={{ flex: 1, backgroundColor: cores.fundo }} keyboardShouldPersistTaps="handled">
+      <View style={[estilos.cabecalho, { paddingTop: insets.top + 16 }]}>
         <Pressable style={estilos.botaoVoltar} onPress={aoVoltar} hitSlop={8}>
           <IconeVoltar tamanho={18} cor={cores.brancoSuave} />
         </Pressable>
@@ -163,13 +167,13 @@ export function TelaCaptura({ aoVoltar }: { aoVoltar: () => void }) {
         )}
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const estilos = StyleSheet.create({
   cabecalho: {
     backgroundColor: cores.escuro,
-    paddingTop: 56,
     paddingHorizontal: 20,
     paddingBottom: 28,
     borderBottomLeftRadius: 24,

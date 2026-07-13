@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LogoNexora } from '../componentes/LogoNexora';
 import { cores, fontes } from '../tema';
 
 /** Login do design (mock): "Entrar" só avança — a autenticação real vem com a API. */
 export function TelaLogin({ aoEntrar }: { aoEntrar: () => void }) {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
   return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
     <ScrollView style={estilos.tela} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-      <View style={estilos.painelMarca}>
+      <View style={[estilos.painelMarca, { paddingTop: insets.top + 48 }]}>
         <LogoNexora tamanho={44} />
         <Text style={estilos.wordmark}>Nexora</Text>
         <Text style={estilos.tagline}>
@@ -45,6 +48,7 @@ export function TelaLogin({ aoEntrar }: { aoEntrar: () => void }) {
         <Text style={estilos.privacidade}>Política de Privacidade</Text>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -55,7 +59,6 @@ const estilos = StyleSheet.create({
   },
   painelMarca: {
     backgroundColor: cores.escuro,
-    paddingTop: 84,
     paddingHorizontal: 24,
     paddingBottom: 36,
     borderBottomLeftRadius: 28,

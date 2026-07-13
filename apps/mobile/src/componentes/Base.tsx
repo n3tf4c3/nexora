@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cores, fontes } from '../tema';
 import { LogoNexora } from './LogoNexora';
 
@@ -12,8 +13,9 @@ export function Cartao({ children, style }: { children: React.ReactNode; style?:
  * mobile do design. O padding superior folga a status bar (edge-to-edge).
  */
 export function CabecalhoEscuro({ children }: { children?: React.ReactNode }) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={estilos.cabecalho}>
+    <View style={[estilos.cabecalho, { paddingTop: insets.top + 20 }]}>
       <View style={estilos.cabecalhoMarca}>
         <LogoNexora tamanho={32} />
         <Text style={estilos.cabecalhoWordmark}>Nexora</Text>
@@ -34,7 +36,6 @@ export const estilos = StyleSheet.create({
   },
   cabecalho: {
     backgroundColor: cores.escuro,
-    paddingTop: 56,
     paddingHorizontal: 20,
     paddingBottom: 28,
     borderBottomLeftRadius: 24,

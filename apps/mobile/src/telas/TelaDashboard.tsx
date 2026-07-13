@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { formatarCentavos } from '@nexora/core';
 import { Cartao, CabecalhoEscuro, estilos as base } from '../componentes/Base';
@@ -14,13 +15,14 @@ function caminhosGrafico(pontos: Array<[number, number]>) {
 }
 
 export function TelaDashboard({ aoAbrirCaptura }: { aoAbrirCaptura: () => void }) {
+  const insets = useSafeAreaInsets();
   const d = dashboardMock;
   const { linha, area } = caminhosGrafico(d.grafico);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: cores.fundo }}>
       <CabecalhoEscuro>
-        <Pressable style={estilos.botaoAjustes} onPress={aoAbrirCaptura} hitSlop={8}>
+        <Pressable style={[estilos.botaoAjustes, { top: insets.top + 20 }]} onPress={aoAbrirCaptura} hitSlop={8}>
           <IconeAjustes tamanho={18} cor={cores.brancoSuave} />
         </Pressable>
         <Text style={estilos.mes}>{d.mesLabel}</Text>
@@ -92,7 +94,6 @@ export function TelaDashboard({ aoAbrirCaptura }: { aoAbrirCaptura: () => void }
 const estilos = StyleSheet.create({
   botaoAjustes: {
     position: 'absolute',
-    top: 56,
     right: 20,
     width: 32,
     height: 32,

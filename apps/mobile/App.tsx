@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts, Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
 import { IconeContas, IconeDashboard, IconeFila, IconeTransacoes } from './src/componentes/Icones';
 import { TelaCaptura } from './src/telas/TelaCaptura';
@@ -21,6 +22,15 @@ const abas: Array<{ id: Aba; rotulo: string; Icone: typeof IconeDashboard }> = [
 ];
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <Raiz />
+    </SafeAreaProvider>
+  );
+}
+
+function Raiz() {
+  const insets = useSafeAreaInsets();
   const [fontesProntas] = useFonts({ Manrope_700Bold, Manrope_800ExtraBold });
   const [logado, setLogado] = useState(false);
   const [aba, setAba] = useState<Aba>('dashboard');
@@ -57,7 +67,7 @@ export default function App() {
         {aba === 'contas' && <TelaContas />}
       </View>
 
-      <View style={estilos.barraAbas}>
+      <View style={[estilos.barraAbas, { paddingBottom: insets.bottom + 10 }]}>
         {abas.map(({ id, rotulo, Icone }) => {
           const ativa = aba === id;
           const cor = ativa ? cores.acento : cores.neutro500;
@@ -82,7 +92,6 @@ const estilos = StyleSheet.create({
     borderTopColor: cores.divisor,
     backgroundColor: cores.superficie,
     paddingTop: 10,
-    paddingBottom: 24,
     paddingHorizontal: 4,
   },
   itemAba: {
