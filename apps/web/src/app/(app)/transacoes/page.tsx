@@ -13,24 +13,36 @@ import { excluirTransacao } from "./actions";
 import { TransacaoForm } from "./transacao-form";
 
 const POR_PAGINA = 50;
+const BUSCA_MAX = 80;
+
+// Query string repetida chega como array — normaliza para o primeiro valor.
+function primeiroValor(v: string | string[] | undefined): string {
+  return (Array.isArray(v) ? v[0] : v) ?? "";
+}
+
+// %, _ e \ são curingas/escape do ILIKE (o escape padrão do Postgres é \).
+function escaparLike(texto: string): string {
+  return texto.replace(/[\\%_]/g, "\\$&");
+}
 
 export default async function TransacoesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; pagina?: string }>;
+  searchParams: Promise<{ q?: string | string[]; pagina?: string | string[] }>;
 }) {
   const usuarioId = await usuarioLogadoId();
   const { q, pagina: paginaParam } = await searchParams;
-  const busca = q?.trim() || "";
-  const pagina = Math.max(1, Number.parseInt(paginaParam ?? "1", 10) || 1);
+  const busca = primeiroValor(q).trim().slice(0, BUSCA_MAX);
+  const pagina = Math.max(1, Number.parseInt(primeiroValor(paginaParam) || "1", 10) || 1);
 
+  const padrao = `%${escaparLike(busca)}%`;
   const filtro = busca
     ? and(
         eq(transacoes.usuarioId, usuarioId),
         or(
-          ilike(transacoes.descricao, `%${busca}%`),
-          ilike(contas.nome, `%${busca}%`),
-          ilike(categorias.nome, `%${busca}%`),
+          ilike(transacoes.descricao, padrao),
+          ilike(contas.nome, padrao),
+          ilike(categorias.nome, padrao),
         ),
       )
     : eq(transacoes.usuarioId, usuarioId);

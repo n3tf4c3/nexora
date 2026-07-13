@@ -1,6 +1,8 @@
 // Mês de referência circula como "YYYY-MM"; datas como "YYYY-MM-DD" (ISO).
 
-const MES_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;
+// Faixa prática de anos (1900–2199): evita aritmética degenerada em anos de
+// borda como "0000", que produzia "-1-00" e quebrava o dashboard (achado 22).
+const MES_RE = /^((?:19|20|21)\d{2})-(0[1-9]|1[0-2])$/;
 
 export function ehMesValido(mes: string): boolean {
   return MES_RE.test(mes);

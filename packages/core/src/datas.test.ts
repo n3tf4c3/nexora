@@ -20,6 +20,14 @@ describe("limitesDoMes", () => {
     expect(() => limitesDoMes("07/2026")).toThrow();
     expect(ehMesValido("2026-00")).toBe(false);
   });
+
+  it("rejeita anos fora da faixa prática (achado 22)", () => {
+    expect(ehMesValido("0000-01")).toBe(false);
+    expect(ehMesValido("1899-12")).toBe(false);
+    expect(ehMesValido("2200-01")).toBe(false);
+    expect(ehMesValido("1900-01")).toBe(true);
+    expect(ehMesValido("2199-12")).toBe(true);
+  });
 });
 
 describe("navegação entre meses", () => {
