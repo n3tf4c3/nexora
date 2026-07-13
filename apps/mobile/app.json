@@ -8,7 +8,9 @@
     "userInterfaceStyle": "light",
     "android": {
       "package": "br.com.pepg.nexora",
-      "permissions": ["android.permission.RECEIVE_SMS"],
+      "permissions": [
+        "android.permission.RECEIVE_SMS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -16,6 +18,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
