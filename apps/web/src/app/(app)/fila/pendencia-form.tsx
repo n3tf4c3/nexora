@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useId } from "react";
+import { DESCRICAO_TRANSACAO_MAX } from "@nexora/core";
 import { confirmarSms } from "./actions";
 import { botaoPrimario, campo } from "@/components/estilos";
 
@@ -45,6 +46,7 @@ export function PendenciaForm({
             placeholder="0,00"
             required
             inputMode="decimal"
+            maxLength={14}
             className={campo}
           />
         </div>
@@ -89,6 +91,7 @@ export function PendenciaForm({
             id={`${id}-descricao`}
             name="descricao"
             placeholder="Ex.: Padaria, mercado..."
+            maxLength={DESCRICAO_TRANSACAO_MAX}
             className={campo}
           />
         </div>

@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { categoriaInputSchema } from "@nexora/core";
 import { db } from "@/db";
 import { categorias } from "@/db/schema";
-import { codigoSql, primeiroErro, type EstadoForm } from "@/server/form";
+import { codigoSql, primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
 export async function criarCategoria(
@@ -29,6 +29,7 @@ export async function criarCategoria(
 
 export async function excluirCategoria(id: string): Promise<void> {
   const usuarioId = await usuarioLogadoId();
+  if (!uuidValido(id)) return;
   try {
     await db
       .delete(categorias)

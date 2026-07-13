@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { NOME_CONTA_MAX } from "@nexora/core";
 import { criarConta } from "./actions";
 import { botaoPrimario, campo } from "@/components/estilos";
 
@@ -29,7 +30,7 @@ export function ContaForm() {
     >
       <div className="field md:col-span-2">
         <label>Nome</label>
-        <input name="nome" placeholder="Ex.: Banco do Brasil" required className={campo} />
+        <input name="nome" placeholder="Ex.: Banco do Brasil" required maxLength={NOME_CONTA_MAX} className={campo} />
       </div>
       <div className="field">
         <label>Tipo</label>

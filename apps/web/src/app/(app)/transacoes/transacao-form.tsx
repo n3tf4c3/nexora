@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useId, useRef } from "react";
+import { DESCRICAO_TRANSACAO_MAX } from "@nexora/core";
 import { criarTransacao } from "./actions";
 import { botaoPrimario, campo } from "@/components/estilos";
 import { IconeMais } from "@/components/icones";
@@ -48,6 +49,7 @@ export function TransacaoForm({
             placeholder="0,00"
             required
             inputMode="decimal"
+            maxLength={14}
             className={campo}
           />
         </div>
@@ -92,6 +94,7 @@ export function TransacaoForm({
             id={`${id}-descricao`}
             name="descricao"
             placeholder="Ex.: Supermercado, aluguel, salário..."
+            maxLength={DESCRICAO_TRANSACAO_MAX}
             className={campo}
           />
         </div>

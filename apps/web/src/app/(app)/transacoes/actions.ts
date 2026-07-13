@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, mensagensSms, transacoes } from "@/db/schema";
-import { primeiroErro, type EstadoForm } from "@/server/form";
+import { primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
 export async function criarTransacao(
@@ -53,6 +53,7 @@ export async function criarTransacao(
 
 export async function excluirTransacao(id: string): Promise<void> {
   const usuarioId = await usuarioLogadoId();
+  if (!uuidValido(id)) return;
   // Batch atômico (transação implícita no neon-http): se a transação veio de
   // um SMS confirmado, a mensagem volta a pendente (reaparece na fila) antes
   // do delete — a FK e o CHECK de vínculo exigem essa ordem.

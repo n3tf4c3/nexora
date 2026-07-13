@@ -3,11 +3,10 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
-import { z } from "zod";
 import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, mensagensSms } from "@/db/schema";
-import { primeiroErro, type EstadoForm } from "@/server/form";
+import { primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
 function revalidarFila() {
@@ -23,7 +22,7 @@ export async function confirmarSms(
   const usuarioId = await usuarioLogadoId();
 
   const mensagemId = String(formData.get("mensagemId") ?? "");
-  if (!z.uuid().safeParse(mensagemId).success) return { erro: "Mensagem inválida." };
+  if (!uuidValido(mensagemId)) return { erro: "Mensagem inválida." };
 
   const valorCentavos = parsearValorBRL(String(formData.get("valor") ?? ""));
   if (valorCentavos === null || valorCentavos === 0) {
@@ -88,6 +87,7 @@ export async function confirmarSms(
 
 export async function ignorarSms(id: string): Promise<void> {
   const usuarioId = await usuarioLogadoId();
+  if (!uuidValido(id)) return;
   await db
     .update(mensagensSms)
     .set({ status: "ignorada" })

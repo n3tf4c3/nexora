@@ -17,9 +17,16 @@ export type TipoTransacao = (typeof TIPOS_TRANSACAO)[number];
 
 const diaDoMes = z.coerce.number().int().min(1).max(31);
 
+const nomeSchema = (max: number) =>
+  z
+    .string()
+    .trim()
+    .min(1, "Informe o nome.")
+    .max(max, `Nome muito longo (máx. ${max} caracteres).`);
+
 export const contaInputSchema = z
   .object({
-    nome: z.string().trim().min(1).max(NOME_CONTA_MAX),
+    nome: nomeSchema(NOME_CONTA_MAX),
     tipo: z.enum(TIPOS_CONTA),
     diaFechamento: diaDoMes.optional(),
     diaVencimento: diaDoMes.optional(),
@@ -39,7 +46,7 @@ export const contaInputSchema = z
 export type ContaInput = z.infer<typeof contaInputSchema>;
 
 export const categoriaInputSchema = z.object({
-  nome: z.string().trim().min(1).max(NOME_CATEGORIA_MAX),
+  nome: nomeSchema(NOME_CATEGORIA_MAX),
 });
 export type CategoriaInput = z.infer<typeof categoriaInputSchema>;
 
@@ -72,10 +79,20 @@ export type CapturaLote = z.infer<typeof capturaLoteSchema>;
 
 export const transacaoInputSchema = z.object({
   tipo: z.enum(TIPOS_TRANSACAO),
-  valorCentavos: z.number().int().positive().max(VALOR_CENTAVOS_MAX),
-  descricao: z.string().trim().max(DESCRICAO_TRANSACAO_MAX).optional(),
-  data: z.iso.date(),
-  contaId: z.uuid(),
-  categoriaId: z.uuid().optional(),
+  valorCentavos: z
+    .number()
+    .int()
+    .positive()
+    .max(VALOR_CENTAVOS_MAX, "Valor acima do máximo suportado."),
+  // Descrição só de espaços vira ausência, não string vazia persistida.
+  descricao: z
+    .string()
+    .trim()
+    .max(DESCRICAO_TRANSACAO_MAX, `Descrição muito longa (máx. ${DESCRICAO_TRANSACAO_MAX}).`)
+    .transform((s) => s || undefined)
+    .optional(),
+  data: z.iso.date("Data inválida."),
+  contaId: z.uuid("Conta inválida."),
+  categoriaId: z.uuid("Categoria inválida.").optional(),
 });
 export type TransacaoInput = z.infer<typeof transacaoInputSchema>;

@@ -13,3 +13,8 @@ export function codigoSql(erro: unknown): string | undefined {
     ? String((erro as { code: unknown }).code)
     : undefined;
 }
+
+/** Guarda de actions destrutivas: ID forjado não vira SQLSTATE 22P02/500. */
+export function uuidValido(id: string): boolean {
+  return z.uuid().safeParse(id).success;
+}

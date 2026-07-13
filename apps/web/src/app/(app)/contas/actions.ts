@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { contaInputSchema } from "@nexora/core";
 import { db } from "@/db";
 import { contas } from "@/db/schema";
-import { codigoSql, primeiroErro, type EstadoForm } from "@/server/form";
+import { codigoSql, primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
 export async function criarConta(
@@ -41,6 +41,7 @@ export async function criarConta(
 
 export async function excluirConta(id: string): Promise<void> {
   const usuarioId = await usuarioLogadoId();
+  if (!uuidValido(id)) return;
   try {
     await db.delete(contas).where(and(eq(contas.id, id), eq(contas.usuarioId, usuarioId)));
   } catch (erro) {
