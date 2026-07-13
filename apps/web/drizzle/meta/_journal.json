@@ -15,6 +15,13 @@
       "when": 1783846181724,
       "tag": "0001_harsh_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783935522183,
+      "tag": "0002_lethal_diamondback",
+      "breakpoints": true
     }
   ]
 }

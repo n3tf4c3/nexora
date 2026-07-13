@@ -12,9 +12,12 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import {
+  CORPO_SMS_MAX,
   DESCRICAO_TRANSACAO_MAX,
   NOME_CATEGORIA_MAX,
   NOME_CONTA_MAX,
+  REMETENTE_SMS_MAX,
+  STATUS_MENSAGEM_SMS,
   TIPOS_CONTA,
   TIPOS_TRANSACAO,
 } from "@nexora/core";
@@ -32,6 +35,7 @@ export const usuarios = pgTable("usuarios", {
 
 export const tipoConta = pgEnum("tipo_conta", TIPOS_CONTA);
 export const tipoTransacao = pgEnum("tipo_transacao", TIPOS_TRANSACAO);
+export const statusMensagemSms = pgEnum("status_mensagem_sms", STATUS_MENSAGEM_SMS);
 
 export const contas = pgTable(
   "contas",
@@ -87,4 +91,30 @@ export const transacoes = pgTable(
     criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [check("transacoes_valor_positivo_chk", sql`${t.valorCentavos} > 0`)],
+);
+
+// SMS cru sempre persistido (auditoria e reprocessamento quando um parser melhorar).
+export const mensagensSms = pgTable(
+  "mensagens_sms",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    remetente: varchar("remetente", { length: REMETENTE_SMS_MAX }).notNull(),
+    corpo: varchar("corpo", { length: CORPO_SMS_MAX }).notNull(),
+    // Instante em que o SMS chegou no aparelho (informado pelo app).
+    recebidaEm: timestamp("recebida_em", { withTimezone: true }).notNull(),
+    // sha256 hex de remetente+recebidaEm+corpo — reenvio/retry do app não duplica,
+    // mas duas compras idênticas em instantes diferentes continuam distintas.
+    hashDedup: varchar("hash_dedup", { length: 64 }).notNull(),
+    status: statusMensagemSms("status").notNull().default("pendente"),
+    // Preenchido quando a revisão na fila confirma a mensagem como transação.
+    // SET NULL: excluir a transação depois não pode travar na FK nem apagar o SMS cru.
+    transacaoId: uuid("transacao_id").references(() => transacoes.id, {
+      onDelete: "set null",
+    }),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("mensagens_sms_usuario_hash_unq").on(t.usuarioId, t.hashDedup)],
 );

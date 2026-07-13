@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  capturaLoteSchema,
+  capturaSmsSchema,
   categoriaInputSchema,
   contaInputSchema,
   transacaoInputSchema,
@@ -64,5 +66,31 @@ describe("transacaoInputSchema", () => {
 
   it("rejeita data fora do formato ISO", () => {
     expect(transacaoInputSchema.safeParse({ ...base, data: "12/07/2026" }).success).toBe(false);
+  });
+});
+
+describe("capturaSmsSchema", () => {
+  const base = {
+    remetente: "Nubank",
+    corpo: "Compra aprovada: R$ 42,90 em PADARIA XYZ.",
+    recebidaEm: "2026-07-13T09:15:00-03:00",
+  };
+
+  it("aceita captura válida com offset ou Z", () => {
+    expect(capturaSmsSchema.safeParse(base).success).toBe(true);
+    expect(
+      capturaSmsSchema.safeParse({ ...base, recebidaEm: "2026-07-13T12:15:00Z" }).success,
+    ).toBe(true);
+  });
+
+  it("rejeita corpo vazio e instante sem hora", () => {
+    expect(capturaSmsSchema.safeParse({ ...base, corpo: "  " }).success).toBe(false);
+    expect(capturaSmsSchema.safeParse({ ...base, recebidaEm: "2026-07-13" }).success).toBe(false);
+  });
+});
+
+describe("capturaLoteSchema", () => {
+  it("exige ao menos uma mensagem", () => {
+    expect(capturaLoteSchema.safeParse({ mensagens: [] }).success).toBe(false);
   });
 });
