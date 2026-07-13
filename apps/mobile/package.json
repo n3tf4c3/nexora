@@ -5,6 +5,7 @@
   "dependencies": {
     "@nexora/core": "*",
     "expo": "~57.0.4",
+    "expo-dev-client": "~57.0.5",
     "expo-status-bar": "~57.0.0",
     "react": "19.2.3",
     "react-native": "0.86.0"
@@ -15,7 +16,7 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "typecheck": "tsc --noEmit"
   },
   "private": true
