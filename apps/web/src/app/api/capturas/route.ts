@@ -1,6 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { asc } from "drizzle-orm";
 import { capturaLoteSchema } from "@nexora/core";
 import { db } from "@/db";
 import { mensagensSms, usuarios } from "@/db/schema";
@@ -53,11 +52,16 @@ export async function POST(req: Request) {
     return Response.json({ erro: primeiroErro(parse.error) }, { status: 400 });
   }
 
-  // Single user: todas as capturas pertencem ao (único) usuário do sistema.
-  const usuario = await db.query.usuarios.findFirst({ orderBy: asc(usuarios.criadoEm) });
-  if (!usuario) {
-    return Response.json({ erro: "Nenhum usuário cadastrado." }, { status: 503 });
+  // Invariante single-user: com 0 ou 2+ usuários a captura recusa em vez de
+  // associar dados silenciosamente ao usuário mais antigo (achado 7).
+  const listaUsuarios = await db.select({ id: usuarios.id }).from(usuarios).limit(2);
+  if (listaUsuarios.length !== 1) {
+    return Response.json(
+      { erro: "Captura exige exatamente um usuário cadastrado." },
+      { status: 503 },
+    );
   }
+  const usuario = listaUsuarios[0];
 
   const valores = parse.data.mensagens.map((m) => ({
     usuarioId: usuario.id,
