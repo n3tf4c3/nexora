@@ -47,6 +47,7 @@ export function Sidebar({ hoje, sair }: { hoje: string; sair: () => Promise<void
           type="text"
           name="q"
           placeholder="Buscar transações..."
+          aria-label="Buscar transações"
         />
       </Form>
 

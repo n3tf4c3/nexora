@@ -169,13 +169,21 @@ export default async function Dashboard({
     <>
       <Topo titulo="Dashboard" subtitulo="Visão geral do mês selecionado.">
         <div className="flex items-center gap-1 rounded-full border border-(--color-divider) bg-(--color-neutral-100) px-1.5 py-1">
-          <Link href={`/?mes=${mesAnterior(mes)}`} className="btn btn-icon h-7 w-7">
+          <Link
+            href={`/?mes=${mesAnterior(mes)}`}
+            aria-label="Mês anterior"
+            className="btn btn-icon h-7 w-7"
+          >
             <IconeSetaEsquerda tamanho={15} />
           </Link>
           <span className="min-w-[104px] text-center text-[13px] font-bold whitespace-nowrap capitalize">
             {nomeDoMes(mes)}
           </span>
-          <Link href={`/?mes=${mesSeguinte(mes)}`} className="btn btn-icon h-7 w-7">
+          <Link
+            href={`/?mes=${mesSeguinte(mes)}`}
+            aria-label="Mês seguinte"
+            className="btn btn-icon h-7 w-7"
+          >
             <IconeSetaDireita tamanho={15} />
           </Link>
         </div>

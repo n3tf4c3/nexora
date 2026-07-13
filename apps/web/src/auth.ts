@@ -1,10 +1,16 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { usuarios } from "@/db/schema";
 import { ipDaRequisicao, limitarTentativasLogin } from "@/server/rate-limit";
+
+// Chega ao cliente como `code: "limite"` — a tela distingue rate limit de
+// credencial inválida sem vazar detalhes (achado 16).
+class LimiteDeTentativas extends CredentialsSignin {
+  code = "limite";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -19,7 +25,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const senha = String(credentials?.senha ?? "");
         if (!email || !senha) return null;
 
-        await limitarTentativasLogin(email, ipDaRequisicao(request.headers));
+        try {
+          await limitarTentativasLogin(email, ipDaRequisicao(request.headers));
+        } catch {
+          throw new LimiteDeTentativas();
+        }
 
         const usuario = await db.query.usuarios.findFirst({
           where: eq(usuarios.email, email),

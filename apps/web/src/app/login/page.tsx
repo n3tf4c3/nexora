@@ -16,18 +16,31 @@ export default function LoginPage() {
     e.preventDefault();
     setEnviando(true);
     setErro(null);
-    const resultado = await signIn("credentials", {
-      email,
-      senha,
-      redirect: false,
-    });
-    if (resultado?.error) {
-      setErro("E-mail ou senha inválidos.");
+    try {
+      const resultado = await signIn("credentials", {
+        email,
+        senha,
+        redirect: false,
+      });
+      if (resultado?.error) {
+        // Sem enumerar conta: credencial inválida tem mensagem própria;
+        // rate limit orienta a aguardar; o resto é indisponibilidade genérica.
+        setErro(
+          resultado.code === "limite"
+            ? "Muitas tentativas — aguarde um minuto e tente de novo."
+            : resultado.error === "CredentialsSignin"
+              ? "E-mail ou senha inválidos."
+              : "Não foi possível entrar agora. Tente novamente em instantes.",
+        );
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } catch {
+      setErro("Falha de conexão. Verifique sua internet e tente de novo.");
+    } finally {
       setEnviando(false);
-      return;
     }
-    router.push("/");
-    router.refresh();
   }
 
   return (
@@ -77,27 +90,35 @@ export default function LoginPage() {
             </p>
 
             <div className="field mb-4">
-              <label>E-mail</label>
+              <label htmlFor="login-email">E-mail</label>
               <input
+                id="login-email"
                 className="input"
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="field mb-6">
-              <label>Senha</label>
+              <label htmlFor="login-senha">Senha</label>
               <input
+                id="login-senha"
                 className="input"
                 type="password"
+                autoComplete="current-password"
                 required
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
               />
             </div>
 
-            {erro && <p className="m-0 mb-4 text-sm text-(--color-error)">{erro}</p>}
+            {erro && (
+              <p role="alert" className="m-0 mb-4 text-sm text-(--color-error)">
+                {erro}
+              </p>
+            )}
 
             <button
               type="submit"
