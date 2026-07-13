@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { usuarios } from "@/db/schema";
-import { limitarTentativasLogin } from "@/server/rate-limit";
+import { ipDaRequisicao, limitarTentativasLogin } from "@/server/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -12,14 +12,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: { email: {}, senha: {} },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email = String(credentials?.email ?? "")
           .toLowerCase()
           .trim();
         const senha = String(credentials?.senha ?? "");
         if (!email || !senha) return null;
 
-        await limitarTentativasLogin(email);
+        await limitarTentativasLogin(email, ipDaRequisicao(request.headers));
 
         const usuario = await db.query.usuarios.findFirst({
           where: eq(usuarios.email, email),

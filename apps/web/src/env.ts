@@ -13,13 +13,31 @@ const schema = z.object({
       message: "AUTH_SECRET de produção não pode ser valor de exemplo.",
     }),
   // Rate limit (Upstash). Ausentes = no-op (dev/CI); presentes = fail-closed.
+  // Em produção o par é obrigatório (achado 3) — ver superRefine abaixo.
   UPSTASH_REDIS_REST_URL: z.string().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   // Token estático do app Android (POST /api/capturas). Ausente = endpoint desativado.
   CAPTURA_SMS_TOKEN: z.string().min(32).optional(),
 });
 
-export const env = schema.parse({
+const schemaComRegras = schema.superRefine((valores, ctx) => {
+  const temUrl = Boolean(valores.UPSTASH_REDIS_REST_URL);
+  const temToken = Boolean(valores.UPSTASH_REDIS_REST_TOKEN);
+  if (temUrl !== temToken) {
+    ctx.addIssue({
+      code: "custom",
+      message: "UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN devem ser definidas juntas.",
+    });
+  }
+  if (emProducao && !temUrl) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Rate limit (Upstash) é obrigatório em produção.",
+    });
+  }
+});
+
+export const env = schemaComRegras.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   AUTH_SECRET: process.env.AUTH_SECRET,
   UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,

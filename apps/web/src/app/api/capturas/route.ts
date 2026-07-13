@@ -6,6 +6,10 @@ import { db } from "@/db";
 import { mensagensSms, usuarios } from "@/db/schema";
 import { env } from "@/env";
 import { primeiroErro } from "@/server/form";
+import { capturaPermitida, ipDaRequisicao } from "@/server/rate-limit";
+
+// Teto folgado para um lote de 50 SMS de 2000 chars (JSON com escapes).
+const CORPO_MAX_BYTES = 256 * 1024;
 
 // Comparação em tempo constante; hash iguala os tamanhos exigidos pelo timingSafeEqual.
 function tokenConfere(recebido: string, esperado: string): boolean {
@@ -21,6 +25,15 @@ function tokenConfere(recebido: string, esperado: string): boolean {
 export async function POST(req: Request) {
   if (!env.CAPTURA_SMS_TOKEN) {
     return Response.json({ erro: "Captura desativada." }, { status: 503 });
+  }
+
+  const tamanho = Number(req.headers.get("content-length") ?? 0);
+  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > CORPO_MAX_BYTES) {
+    return Response.json({ erro: "Corpo ausente ou grande demais." }, { status: 413 });
+  }
+
+  if (!(await capturaPermitida(ipDaRequisicao(req.headers)))) {
+    return Response.json({ erro: "Muitas requisições; aguarde." }, { status: 429 });
   }
 
   const cabecalho = req.headers.get("authorization") ?? "";
