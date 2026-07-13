@@ -18,7 +18,7 @@
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.35.0",
     "bcryptjs": "^3.0.2",
-    "drizzle-orm": "^0.44.2",
+    "drizzle-orm": "^0.45.2",
     "next": "16.2.10",
     "next-auth": "^5.0.0-beta.29",
     "react": "19.2.3",
