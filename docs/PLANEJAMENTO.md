@@ -12,7 +12,7 @@ Ferramenta financeira pessoal que captura pagamentos via SMS do celular e organi
 | Usuários | Single user (uso pessoal) | Sem multi-tenancy, sem planos/billing. Auth simples com NextAuth. |
 | Moeda/contexto | BRL, bancos brasileiros, SMS em pt-BR | Parsers escritos para os formatos reais dos bancos do usuário. |
 | Fonte de captura | Só SMS (decisão de 2026-07-12) | Notificações push (`NotificationListenerService`) foram consideradas e descartadas por escolha do usuário; viram alternativa futura se algum banco não enviar SMS. |
-| Auth mobile → API | Token estático (env var no app, conferido na API) | Single user, uso pessoal: sem fluxo de login no celular. |
+| Auth mobile → API | Token estático (env var no app, conferido na API) | Single user, uso pessoal: sem fluxo de login no celular. **Risco aceito** (auditoria 2026-07-13, achado 5): sem identidade/revogação por dispositivo. Mitigações obrigatórias: token nunca em `EXPO_PUBLIC_*`, `app.json` ou código; no aparelho, guardado via Keystore (`expo-secure-store`); rotação = trocar env na Vercel + no app (ver skill `rotacao-segredos`); vazamento é contido pelo rate limit por IP e pela fila de confirmação (captura não cria transação sozinha). |
 
 **Premissa a validar na Fase 2:** quais bancos/cartões enviam SMS para o usuário — os parsers serão escritos a partir de amostras reais dos SMS dele, não de templates genéricos.
 
