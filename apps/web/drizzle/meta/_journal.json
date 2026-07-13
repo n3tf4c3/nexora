@@ -29,6 +29,13 @@
       "when": 1783937673285,
       "tag": "0003_light_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783937792604,
+      "tag": "0004_great_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }

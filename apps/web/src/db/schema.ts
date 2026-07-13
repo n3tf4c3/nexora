@@ -53,9 +53,15 @@ export const contas = pgTable(
   },
   (t) => [
     uniqueIndex("contas_usuario_nome_unq").on(t.usuarioId, t.nome),
+    // Expressão total (nunca NULL): cartão exige ambos os dias na faixa;
+    // não cartão exige ambos nulos. IS NOT NULL evita o vazamento de NULL
+    // que fazia o CHECK anterior aceitar estados inválidos (achado 8).
     check(
       "contas_dias_cartao_chk",
-      sql`(${t.tipo} <> 'cartao_credito') or (${t.diaFechamento} between 1 and 31 and ${t.diaVencimento} between 1 and 31)`,
+      sql`(${t.tipo} = 'cartao_credito'
+        and ${t.diaFechamento} is not null and ${t.diaFechamento} between 1 and 31
+        and ${t.diaVencimento} is not null and ${t.diaVencimento} between 1 and 31)
+      or (${t.tipo} <> 'cartao_credito' and ${t.diaFechamento} is null and ${t.diaVencimento} is null)`,
     ),
   ],
 );

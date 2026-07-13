@@ -26,6 +26,21 @@ describe("contaInputSchema", () => {
     ).toBe(true);
   });
 
+  it("rejeita dias de cartão em conta que não é cartão", () => {
+    expect(
+      contaInputSchema.safeParse({ nome: "Corrente", tipo: "corrente", diaFechamento: 10 })
+        .success,
+    ).toBe(false);
+    expect(
+      contaInputSchema.safeParse({
+        nome: "Carteira",
+        tipo: "carteira",
+        diaFechamento: 5,
+        diaVencimento: 10,
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejeita nome vazio e dia fora do mês", () => {
     expect(contaInputSchema.safeParse({ nome: "  ", tipo: "carteira" }).success).toBe(false);
     expect(

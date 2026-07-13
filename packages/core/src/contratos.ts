@@ -28,6 +28,12 @@ export const contaInputSchema = z
       c.tipo !== "cartao_credito" ||
       (c.diaFechamento !== undefined && c.diaVencimento !== undefined),
     { message: "Cartão de crédito exige dia de fechamento e de vencimento." },
+  )
+  .refine(
+    (c) =>
+      c.tipo === "cartao_credito" ||
+      (c.diaFechamento === undefined && c.diaVencimento === undefined),
+    { message: "Dias de fechamento e vencimento são exclusivos de cartão de crédito." },
   );
 export type ContaInput = z.infer<typeof contaInputSchema>;
 
