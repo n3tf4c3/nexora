@@ -1,11 +1,12 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
 import { db } from "@/db";
-import { categorias, contas, mensagensSms, transacoes } from "@/db/schema";
+import { categorias, contas, mensagensSms } from "@/db/schema";
 import { primeiroErro, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
@@ -39,13 +40,8 @@ export async function confirmarSms(
   });
   if (!parse.success) return { erro: primeiroErro(parse.error) };
 
-  // Posse: mensagem, conta e categoria precisam ser do usuário.
-  const mensagem = await db.query.mensagensSms.findFirst({
-    where: and(eq(mensagensSms.id, mensagemId), eq(mensagensSms.usuarioId, usuarioId)),
-  });
-  if (!mensagem) return { erro: "Mensagem inválida." };
-  if (mensagem.status !== "pendente") return { erro: "Mensagem já revisada." };
-
+  // Posse: conta e categoria precisam ser do usuário (mensagem é checada
+  // no statement atômico abaixo).
   const conta = await db.query.contas.findFirst({
     where: and(eq(contas.id, parse.data.contaId), eq(contas.usuarioId, usuarioId)),
   });
@@ -61,29 +57,30 @@ export async function confirmarSms(
     if (!categoria) return { erro: "Categoria inválida." };
   }
 
-  // Sem transação interativa (neon-http): insere e marca com UPDATE condicional;
-  // se outra revisão chegou antes, desfaz a transação criada.
-  const [transacao] = await db
-    .insert(transacoes)
-    .values({ usuarioId, ...parse.data })
-    .returning({ id: transacoes.id });
-
-  const marcadas = await db
-    .update(mensagensSms)
-    .set({ status: "confirmada", transacaoId: transacao.id })
-    .where(
-      and(
-        eq(mensagensSms.id, mensagemId),
-        eq(mensagensSms.usuarioId, usuarioId),
-        eq(mensagensSms.status, "pendente"),
-      ),
+  // Sem transação interativa (neon-http): um único statement CTE cria a
+  // transação e marca a mensagem atomicamente. O FOR UPDATE serializa
+  // revisões concorrentes; quem perde a corrida não afeta nenhuma linha.
+  const { data } = parse;
+  const resultado = await db.execute(sql`
+    with pendente as (
+      select id from mensagens_sms
+      where id = ${mensagemId} and usuario_id = ${usuarioId} and status = 'pendente'
+      for update
+    ),
+    nova as (
+      insert into transacoes (id, usuario_id, conta_id, categoria_id, tipo, valor_centavos, descricao, data)
+      select ${randomUUID()}, ${usuarioId}, ${data.contaId}, ${data.categoriaId ?? null},
+             ${data.tipo}, ${data.valorCentavos}, ${data.descricao ?? null}, ${data.data}
+      from pendente
+      returning id
     )
-    .returning({ id: mensagensSms.id });
-
-  if (marcadas.length === 0) {
-    await db.delete(transacoes).where(eq(transacoes.id, transacao.id));
-    return { erro: "Mensagem já revisada." };
-  }
+    update mensagens_sms m
+    set status = 'confirmada', transacao_id = nova.id
+    from nova
+    where m.id = ${mensagemId}
+    returning m.id
+  `);
+  if (resultado.rows.length === 0) return { erro: "Mensagem já revisada." };
 
   revalidarFila();
   return { ok: true };

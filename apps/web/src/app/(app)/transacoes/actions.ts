@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
 import { db } from "@/db";
-import { categorias, contas, transacoes } from "@/db/schema";
+import { categorias, contas, mensagensSms, transacoes } from "@/db/schema";
 import { primeiroErro, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
@@ -53,9 +53,19 @@ export async function criarTransacao(
 
 export async function excluirTransacao(id: string): Promise<void> {
   const usuarioId = await usuarioLogadoId();
-  await db
-    .delete(transacoes)
-    .where(and(eq(transacoes.id, id), eq(transacoes.usuarioId, usuarioId)));
+  // Batch atômico (transação implícita no neon-http): se a transação veio de
+  // um SMS confirmado, a mensagem volta a pendente (reaparece na fila) antes
+  // do delete — a FK e o CHECK de vínculo exigem essa ordem.
+  await db.batch([
+    db
+      .update(mensagensSms)
+      .set({ status: "pendente", transacaoId: null })
+      .where(and(eq(mensagensSms.transacaoId, id), eq(mensagensSms.usuarioId, usuarioId))),
+    db
+      .delete(transacoes)
+      .where(and(eq(transacoes.id, id), eq(transacoes.usuarioId, usuarioId))),
+  ]);
   revalidatePath("/transacoes");
+  revalidatePath("/fila");
   revalidatePath("/");
 }

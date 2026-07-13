@@ -110,11 +110,21 @@ export const mensagensSms = pgTable(
     hashDedup: varchar("hash_dedup", { length: 64 }).notNull(),
     status: statusMensagemSms("status").notNull().default("pendente"),
     // Preenchido quando a revisão na fila confirma a mensagem como transação.
-    // SET NULL: excluir a transação depois não pode travar na FK nem apagar o SMS cru.
-    transacaoId: uuid("transacao_id").references(() => transacoes.id, {
-      onDelete: "set null",
-    }),
+    // Excluir a transação desvincula a mensagem (volta a pendente) no mesmo
+    // batch atômico — por isso a FK é NO ACTION, não SET NULL.
+    transacaoId: uuid("transacao_id").references(() => transacoes.id),
     criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("mensagens_sms_usuario_hash_unq").on(t.usuarioId, t.hashDedup)],
+  (t) => [
+    uniqueIndex("mensagens_sms_usuario_hash_unq").on(t.usuarioId, t.hashDedup),
+    // Vínculo 1:1 — uma transação pertence a no máximo um SMS.
+    uniqueIndex("mensagens_sms_transacao_unq")
+      .on(t.transacaoId)
+      .where(sql`${t.transacaoId} is not null`),
+    // Estado coerente: confirmada tem transação; pendente/ignorada não tem.
+    check(
+      "mensagens_sms_status_vinculo_chk",
+      sql`(${t.status} = 'confirmada') = (${t.transacaoId} is not null)`,
+    ),
+  ],
 );
