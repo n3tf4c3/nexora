@@ -138,7 +138,7 @@ export default async function TransacoesPage({
             </div>
           ) : (
             <>
-              <div className="hidden md:block">
+              <div className="hidden overflow-x-auto md:block">
                 <table className="table">
                   <thead>
                     <tr>
