@@ -33,7 +33,20 @@ Observações:
 - Não é uma transação: o gasto acontece quando a fatura é paga. Candidato a
   classificação automática como "fatura" (pendência informativa), não a transação.
 
+## Cobertura por banco (levantado em 2026-07-13)
+
+Bancos do usuário: Nubank, Itaú e Banco do Brasil (além do Cartão Amazon acima).
+
+| Banco | Canal de alerta de compra | Situação |
+|---|---|---|
+| Cartão Amazon | SMS (confirmado — amostra acima) | Falta amostra de **compra aprovada** e o remetente. |
+| Itaú | SMS disponível (aviso configurável no app) | Confirmar se o aviso por SMS está ativo; coletar amostras. |
+| Banco do Brasil | SMS disponível (aviso configurável no app) | Confirmar se o aviso por SMS está ativo; coletar amostras. |
+| Nubank | **Só push do app** (SMS apenas para OTP) — confirmar no app de Mensagens | Fora da captura por SMS. Alternativa futura: `NotificationListenerService` (ver PLANEJAMENTO, fora de escopo da v1). |
+
 ## Pendente de coleta
 
-- Cartão Amazon — SMS de **compra aprovada** (se existir; é o formato mais importante para a Fase 2).
-- Demais bancos/cartões do usuário — compra, Pix recebido/enviado, débito, TED.
+- Cartão Amazon — SMS de **compra aprovada** (se existir; é o formato mais importante para a Fase 2) e o remetente da amostra de fatura.
+- Itaú — compra no crédito/débito, Pix recebido/enviado, TED; registrar remetente.
+- Banco do Brasil — compra no crédito/débito, Pix recebido/enviado, TED; registrar remetente.
+- Nubank — confirmar no app de Mensagens que não há SMS de compra (só OTP).
