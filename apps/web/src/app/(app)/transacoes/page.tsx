@@ -3,6 +3,7 @@ import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, transacoes } from "@/db/schema";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
 import { IconeMais } from "@/components/icones";
 import { Topo } from "@/components/topo";
@@ -159,7 +160,12 @@ export default async function TransacoesPage({
                         </td>
                         <td className="text-right">
                           <form action={excluirTransacao.bind(null, t.id)}>
-                            <button className={botaoPerigo}>Excluir</button>
+                            <BotaoConfirmar
+                              mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
+                              className={botaoPerigo}
+                            >
+                              Excluir
+                            </BotaoConfirmar>
                           </form>
                         </td>
                       </tr>
@@ -189,9 +195,13 @@ export default async function TransacoesPage({
                       {t.categoria ?? "—"} · {t.conta}
                     </div>
                     <form action={excluirTransacao.bind(null, t.id)}>
-                      <button className={botaoPerigo} style={{ fontSize: 12 }}>
+                      <BotaoConfirmar
+                        mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
+                        className={botaoPerigo}
+                        style={{ fontSize: 12 }}
+                      >
                         Excluir
-                      </button>
+                      </BotaoConfirmar>
                     </form>
                   </div>
                 ))}

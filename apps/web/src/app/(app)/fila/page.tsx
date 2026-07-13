@@ -2,6 +2,7 @@ import Link from "next/link";
 import { and, asc, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categorias, contas, mensagensSms } from "@/db/schema";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
 import { IconeCaixaVazia } from "@/components/icones";
 import { Topo } from "@/components/topo";
@@ -97,7 +98,12 @@ export default async function FilaPage() {
                 />
               )}
               <form action={ignorarSms.bind(null, p.id)} className="mt-3">
-                <button className={botaoPerigo}>Ignorar este SMS</button>
+                <BotaoConfirmar
+                  mensagem="Ignorar este SMS? Ele sai da fila (o texto cru continua guardado)."
+                  className={botaoPerigo}
+                >
+                  Ignorar este SMS
+                </BotaoConfirmar>
               </form>
             </div>
             ))}

@@ -1,6 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categorias, contas } from "@/db/schema";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
 import { IconeMais } from "@/components/icones";
 import { Topo } from "@/components/topo";
@@ -75,9 +76,13 @@ export default async function ContasPage({
                       )}
                     </div>
                     <form action={excluirConta.bind(null, c.id)}>
-                      <button className={botaoPerigo} style={{ fontSize: 12 }}>
+                      <BotaoConfirmar
+                        mensagem={`Excluir a conta "${c.nome}"?`}
+                        className={botaoPerigo}
+                        style={{ fontSize: 12 }}
+                      >
                         Excluir
-                      </button>
+                      </BotaoConfirmar>
                     </form>
                   </div>
                 ))}
@@ -101,9 +106,13 @@ export default async function ContasPage({
                   >
                     <span className="text-[14px]">{c.nome}</span>
                     <form action={excluirCategoria.bind(null, c.id)}>
-                      <button className={botaoPerigo} style={{ fontSize: 12 }}>
+                      <BotaoConfirmar
+                        mensagem={`Excluir a categoria "${c.nome}"?`}
+                        className={botaoPerigo}
+                        style={{ fontSize: 12 }}
+                      >
                         Excluir
-                      </button>
+                      </BotaoConfirmar>
                     </form>
                   </div>
                 ))}
