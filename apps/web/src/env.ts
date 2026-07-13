@@ -40,7 +40,9 @@ const schemaComRegras = schema.superRefine((valores, ctx) => {
 export const env = schemaComRegras.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   AUTH_SECRET: process.env.AUTH_SECRET,
-  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+  // A integração Upstash do marketplace da Vercel injeta os nomes KV_*;
+  // aceitamos ambos, com prioridade para os nomes UPSTASH_* explícitos.
+  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL,
+  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN,
   CAPTURA_SMS_TOKEN: process.env.CAPTURA_SMS_TOKEN || undefined,
 });
