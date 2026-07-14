@@ -17,18 +17,9 @@ function tokenConfere(recebido: string, esperado: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-/**
- * Recebe capturas de SMS do app Android (token estático — sem sessão).
- * Idempotente: reenvio do mesmo lote não duplica (hash único por mensagem).
- */
-export async function POST(req: Request) {
+async function validarAcesso(req: Request): Promise<Response | null> {
   if (!env.CAPTURA_SMS_TOKEN) {
     return Response.json({ erro: "Captura desativada." }, { status: 503 });
-  }
-
-  const tamanho = Number(req.headers.get("content-length") ?? 0);
-  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > CORPO_MAX_BYTES) {
-    return Response.json({ erro: "Corpo ausente ou grande demais." }, { status: 413 });
   }
 
   if (!(await capturaPermitida(ipDaRequisicao(req.headers)))) {
@@ -40,6 +31,42 @@ export async function POST(req: Request) {
   if (!token || !tokenConfere(token, env.CAPTURA_SMS_TOKEN)) {
     return Response.json({ erro: "Não autorizado." }, { status: 401 });
   }
+
+  return null;
+}
+
+async function usuarioUnico() {
+  const listaUsuarios = await db.select({ id: usuarios.id }).from(usuarios).limit(2);
+  return listaUsuarios.length === 1 ? listaUsuarios[0] : null;
+}
+
+/** Diagnóstico autenticado usado pelo app Android para testar a configuração. */
+export async function GET(req: Request) {
+  const erroAcesso = await validarAcesso(req);
+  if (erroAcesso) return erroAcesso;
+
+  if (!(await usuarioUnico())) {
+    return Response.json(
+      { erro: "Captura exige exatamente um usuário cadastrado." },
+      { status: 503 },
+    );
+  }
+
+  return Response.json({ ok: true });
+}
+
+/**
+ * Recebe capturas de SMS do app Android (token estático — sem sessão).
+ * Idempotente: reenvio do mesmo lote não duplica (hash único por mensagem).
+ */
+export async function POST(req: Request) {
+  const tamanho = Number(req.headers.get("content-length") ?? 0);
+  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > CORPO_MAX_BYTES) {
+    return Response.json({ erro: "Corpo ausente ou grande demais." }, { status: 413 });
+  }
+
+  const erroAcesso = await validarAcesso(req);
+  if (erroAcesso) return erroAcesso;
 
   let corpo: unknown;
   try {
@@ -54,14 +81,13 @@ export async function POST(req: Request) {
 
   // Invariante single-user: com 0 ou 2+ usuários a captura recusa em vez de
   // associar dados silenciosamente ao usuário mais antigo (achado 7).
-  const listaUsuarios = await db.select({ id: usuarios.id }).from(usuarios).limit(2);
-  if (listaUsuarios.length !== 1) {
+  const usuario = await usuarioUnico();
+  if (!usuario) {
     return Response.json(
       { erro: "Captura exige exatamente um usuário cadastrado." },
       { status: 503 },
     );
   }
-  const usuario = listaUsuarios[0];
 
   const valores = parse.data.mensagens.map((m) => ({
     usuarioId: usuario.id,
