@@ -1,11 +1,10 @@
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import { migrate } from "drizzle-orm/neon-http/migrator";
 import { z } from "zod";
+import { executarMigracoesAtomicas } from "./migration-runner";
 
-// Migra via HTTP (neon-http): o `drizzle-kit migrate` conecta por websocket,
-// que não fecha conexão em algumas redes. DDL na conexão direta quando disponível.
+// Migra via HTTP: o `drizzle-kit migrate` conecta por websocket,
+// que não fecha conexão em algumas redes.
 const parse = z
   .object({
     DATABASE_URL: z.string().min(1, "Defina DATABASE_URL no .env."),
@@ -20,9 +19,9 @@ if (!parse.success) {
   process.exit(1);
 }
 
-const db = drizzle(neon(parse.data.DATABASE_URL_UNPOOLED || parse.data.DATABASE_URL));
+const cliente = neon(parse.data.DATABASE_URL_UNPOOLED || parse.data.DATABASE_URL);
 
-migrate(db, { migrationsFolder: "./drizzle" })
+executarMigracoesAtomicas(cliente, "./drizzle")
   .then(() => {
     console.log("Migrations aplicadas.");
   })
