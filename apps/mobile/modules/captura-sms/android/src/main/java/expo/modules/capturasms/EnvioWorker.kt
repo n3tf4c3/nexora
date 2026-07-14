@@ -20,6 +20,28 @@ import java.util.concurrent.TimeUnit
 import org.json.JSONArray
 import org.json.JSONObject
 
+internal enum class ClassificacaoRespostaHttp {
+  SUCESSO,
+  RETENTAR,
+  FALHA_PERMANENTE,
+}
+
+internal fun classificarRespostaHttp(status: Int): ClassificacaoRespostaHttp =
+  when {
+    status in 200..299 -> ClassificacaoRespostaHttp.SUCESSO
+    status == 429 || status >= 500 -> ClassificacaoRespostaHttp.RETENTAR
+    else -> ClassificacaoRespostaHttp.FALHA_PERMANENTE
+  }
+
+internal fun codigoErroHttp(status: Int): String =
+  when {
+    status == 401 || status == 403 -> "credencial"
+    status == 429 -> "limite"
+    status == 400 || status == 413 || status == 422 -> "payload"
+    status >= 500 -> "servidor"
+    else -> "http"
+  }
+
 /**
  * Drena a fila local para o POST /api/capturas em lotes, com retry e backoff
  * exponencial do WorkManager. O reenvio é seguro: o servidor deduplica por
@@ -29,27 +51,45 @@ class EnvioWorker(context: Context, params: WorkerParameters) : Worker(context, 
 
   override fun doWork(): Result {
     val config = Config(applicationContext)
+    config.registrarTentativa()
     val urlApi = config.urlApi
     val token = config.token
     // Sem configuração não há o que tentar; a fila fica preservada até o
     // usuário configurar e sincronizar de novo.
-    if (urlApi.isNullOrBlank() || token.isNullOrBlank()) return Result.failure()
+    if (urlApi.isNullOrBlank() || token.isNullOrBlank()) {
+      config.registrarErro("configuracao")
+      return Result.failure()
+    }
 
     val fila = FilaSms(applicationContext)
+    var ultimoStatusSucesso: Int? = null
     while (true) {
       val lote = fila.listar(LOTE_MAX)
-      if (lote.isEmpty()) return Result.success()
+      if (lote.isEmpty()) {
+        ultimoStatusSucesso?.let { config.registrarSucesso(it) }
+        return Result.success()
+      }
       val status = try {
         enviar(urlApi, token, lote)
       } catch (e: IOException) {
+        config.registrarErro("rede")
         return Result.retry()
       }
-      when {
-        status in 200..299 -> fila.remover(lote.map { it.id })
-        status == 429 || status >= 500 -> return Result.retry()
+      when (classificarRespostaHttp(status)) {
+        ClassificacaoRespostaHttp.SUCESSO -> {
+          ultimoStatusSucesso = status
+          fila.remover(lote.map { it.id })
+        }
+        ClassificacaoRespostaHttp.RETENTAR -> {
+          config.registrarErro(codigoErroHttp(status), status)
+          return Result.retry()
+        }
         // Demais 4xx: URL/token errados ou payload rejeitado. Fila preservada;
         // corrigir a configuração e sincronizar manualmente.
-        else -> return Result.failure()
+        ClassificacaoRespostaHttp.FALHA_PERMANENTE -> {
+          config.registrarErro(codigoErroHttp(status), status)
+          return Result.failure()
+        }
       }
     }
   }

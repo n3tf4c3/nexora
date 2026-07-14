@@ -24,8 +24,10 @@ class SmsReceiver : BroadcastReceiver() {
     val corpo = partes.joinToString("") { it.displayMessageBody ?: "" }
     if (corpo.isBlank()) return
 
-    if (!Config(context).remetentePermitido(remetente)) return
+    val config = Config(context)
+    if (!config.remetentePermitido(remetente)) return
 
+    config.registrarSmsRecebido(partes.first().timestampMillis)
     FilaSms(context).inserir(remetente, corpo, partes.first().timestampMillis)
     EnvioWorker.agendar(context)
   }

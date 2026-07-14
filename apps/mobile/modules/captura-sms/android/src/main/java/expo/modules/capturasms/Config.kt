@@ -31,14 +31,15 @@ class Config(context: Context) {
   var remetentes: List<String>
     get() = (prefs.getString("remetentes", "") ?: "").split("\n").filter { it.isNotBlank() }
     set(valor) {
-      prefs.edit().putString("remetentes", valor.joinToString("\n")).apply()
+      val normalizados = valor.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+      prefs.edit().putString("remetentes", normalizados.joinToString("\n")).apply()
     }
 
   fun remetentePermitido(remetente: String): Boolean =
-    remetentes.any { remetente.contains(it, ignoreCase = true) }
+    remetentes.any { remetente.equals(it, ignoreCase = true) }
 
   val temToken: Boolean
-    get() = prefs.contains("token_cifrado")
+    get() = token != null
 
   var token: String?
     get() {
@@ -47,6 +48,7 @@ class Config(context: Context) {
         decifrar(Base64.decode(cifrado, Base64.NO_WRAP))
       } catch (e: Exception) {
         // Chave perdida (ex.: restauração de backup em outro aparelho): trata como ausente.
+        prefs.edit().remove("token_cifrado").apply()
         null
       }
     }
@@ -58,6 +60,78 @@ class Config(context: Context) {
         prefs.edit().putString("token_cifrado", cifrado).apply()
       }
     }
+
+  val ultimoSmsRecebidoEmMs: Long?
+    get() = longOuNull(CHAVE_ULTIMO_SMS)
+
+  val ultimaTentativaEmMs: Long?
+    get() = longOuNull(CHAVE_ULTIMA_TENTATIVA)
+
+  val ultimoSucessoEmMs: Long?
+    get() = longOuNull(CHAVE_ULTIMO_SUCESSO)
+
+  val ultimoErroEmMs: Long?
+    get() = longOuNull(CHAVE_ULTIMO_ERRO_EM)
+
+  val ultimoErroCodigo: String?
+    get() = prefs.getString(CHAVE_ULTIMO_ERRO_CODIGO, null)
+
+  val ultimoStatusHttp: Int?
+    get() = if (prefs.contains(CHAVE_ULTIMO_STATUS_HTTP)) {
+      prefs.getInt(CHAVE_ULTIMO_STATUS_HTTP, 0)
+    } else {
+      null
+    }
+
+  val falhasConsecutivas: Int
+    get() = prefs.getInt(CHAVE_FALHAS_CONSECUTIVAS, 0)
+
+  fun registrarSmsRecebido(instanteMs: Long) {
+    prefs.edit().putLong(CHAVE_ULTIMO_SMS, instanteMs).apply()
+  }
+
+  fun registrarTentativa(instanteMs: Long = System.currentTimeMillis()) {
+    prefs.edit().putLong(CHAVE_ULTIMA_TENTATIVA, instanteMs).apply()
+  }
+
+  fun registrarSucesso(statusHttp: Int, instanteMs: Long = System.currentTimeMillis()) {
+    prefs.edit()
+      .putLong(CHAVE_ULTIMO_SUCESSO, instanteMs)
+      .putInt(CHAVE_ULTIMO_STATUS_HTTP, statusHttp)
+      .putInt(CHAVE_FALHAS_CONSECUTIVAS, 0)
+      .remove(CHAVE_ULTIMO_ERRO_EM)
+      .remove(CHAVE_ULTIMO_ERRO_CODIGO)
+      .apply()
+  }
+
+  fun registrarConexaoAprovada(statusHttp: Int) {
+    prefs.edit()
+      .putInt(CHAVE_ULTIMO_STATUS_HTTP, statusHttp)
+      .putInt(CHAVE_FALHAS_CONSECUTIVAS, 0)
+      .remove(CHAVE_ULTIMO_ERRO_EM)
+      .remove(CHAVE_ULTIMO_ERRO_CODIGO)
+      .apply()
+  }
+
+  fun registrarErro(
+    codigo: String,
+    statusHttp: Int? = null,
+    instanteMs: Long = System.currentTimeMillis(),
+  ) {
+    val editor = prefs.edit()
+      .putLong(CHAVE_ULTIMO_ERRO_EM, instanteMs)
+      .putString(CHAVE_ULTIMO_ERRO_CODIGO, codigo)
+      .putInt(CHAVE_FALHAS_CONSECUTIVAS, falhasConsecutivas + 1)
+    if (statusHttp == null) {
+      editor.remove(CHAVE_ULTIMO_STATUS_HTTP)
+    } else {
+      editor.putInt(CHAVE_ULTIMO_STATUS_HTTP, statusHttp)
+    }
+    editor.apply()
+  }
+
+  private fun longOuNull(chave: String): Long? =
+    if (prefs.contains(chave)) prefs.getLong(chave, 0) else null
 
   private fun chave(): SecretKey {
     val keystore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
@@ -91,5 +165,12 @@ class Config(context: Context) {
   private companion object {
     const val ALIAS_CHAVE = "nexora-captura-token"
     const val TAMANHO_IV = 12
+    const val CHAVE_ULTIMO_SMS = "ultimo_sms_recebido_em_ms"
+    const val CHAVE_ULTIMA_TENTATIVA = "ultima_tentativa_em_ms"
+    const val CHAVE_ULTIMO_SUCESSO = "ultimo_sucesso_em_ms"
+    const val CHAVE_ULTIMO_ERRO_EM = "ultimo_erro_em_ms"
+    const val CHAVE_ULTIMO_ERRO_CODIGO = "ultimo_erro_codigo"
+    const val CHAVE_ULTIMO_STATUS_HTTP = "ultimo_status_http"
+    const val CHAVE_FALHAS_CONSECUTIVAS = "falhas_consecutivas"
   }
 }

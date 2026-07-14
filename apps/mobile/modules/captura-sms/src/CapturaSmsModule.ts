@@ -5,6 +5,20 @@ export type EstadoCaptura = {
   temToken: boolean;
   remetentes: string[];
   pendentes: number;
+  pendenteMaisAntigoEmMs: number | null;
+  ultimoSmsRecebidoEmMs: number | null;
+  ultimaTentativaEmMs: number | null;
+  ultimoSucessoEmMs: number | null;
+  ultimoErroEmMs: number | null;
+  ultimoErroCodigo: string | null;
+  ultimoStatusHttp: number | null;
+  falhasConsecutivas: number;
+};
+
+export type ResultadoTesteConexao = {
+  ok: boolean;
+  codigo: string | null;
+  statusHttp: number | null;
 };
 
 export type CapturaSmsNativo = {
@@ -13,6 +27,7 @@ export type CapturaSmsNativo = {
   definirRemetentes(remetentes: string[]): void;
   obterEstado(): EstadoCaptura;
   sincronizarAgora(): void;
+  testarConexao(): Promise<ResultadoTesteConexao>;
 };
 
 /**

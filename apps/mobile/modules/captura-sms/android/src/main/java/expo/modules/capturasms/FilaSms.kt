@@ -67,4 +67,9 @@ class FilaSms(context: Context) :
   }
 
   fun contar(): Long = DatabaseUtils.queryNumEntries(readableDatabase, "fila")
+
+  fun recebidaEmMaisAntigaMs(): Long? =
+    readableDatabase.rawQuery("SELECT MIN(recebida_em_ms) FROM fila", null).use { cursor ->
+      if (!cursor.moveToFirst() || cursor.isNull(0)) null else cursor.getLong(0)
+    }
 }
