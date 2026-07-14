@@ -43,6 +43,13 @@
       "when": 1783938169403,
       "tag": "0005_icy_firedrake",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784057534027,
+      "tag": "0006_dashing_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

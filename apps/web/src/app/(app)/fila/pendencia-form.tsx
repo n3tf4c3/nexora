@@ -10,11 +10,17 @@ type Opcao = { id: string; nome: string };
 export function PendenciaForm({
   mensagemId,
   dataSugerida,
+  tipoSugerido = "saida",
+  valorSugerido,
+  descricaoSugerida,
   contas,
   categorias,
 }: {
   mensagemId: string;
   dataSugerida: string;
+  tipoSugerido?: "entrada" | "saida";
+  valorSugerido?: string;
+  descricaoSugerida?: string;
   contas: Opcao[];
   categorias: Opcao[];
 }) {
@@ -29,11 +35,21 @@ export function PendenciaForm({
           <legend className="p-0">Tipo</legend>
           <div className="seg">
             <label className="seg-opt">
-              <input type="radio" name="tipo" value="saida" defaultChecked />
+              <input
+                type="radio"
+                name="tipo"
+                value="saida"
+                defaultChecked={tipoSugerido === "saida"}
+              />
               Saída
             </label>
             <label className="seg-opt">
-              <input type="radio" name="tipo" value="entrada" />
+              <input
+                type="radio"
+                name="tipo"
+                value="entrada"
+                defaultChecked={tipoSugerido === "entrada"}
+              />
               Entrada
             </label>
           </div>
@@ -44,6 +60,7 @@ export function PendenciaForm({
             id={`${id}-valor`}
             name="valor"
             placeholder="0,00"
+            defaultValue={valorSugerido}
             required
             inputMode="decimal"
             maxLength={14}
@@ -91,6 +108,7 @@ export function PendenciaForm({
             id={`${id}-descricao`}
             name="descricao"
             placeholder="Ex.: Padaria, mercado..."
+            defaultValue={descricaoSugerida}
             maxLength={DESCRICAO_TRANSACAO_MAX}
             className={campo}
           />

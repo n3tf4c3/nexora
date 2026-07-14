@@ -1,10 +1,12 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { capturaLoteSchema } from "@nexora/core";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { mensagensSms, usuarios } from "@/db/schema";
 import { env } from "@/env";
 import { primeiroErro } from "@/server/form";
+import { persistirInterpretacoesSms } from "@/server/interpretacoes-sms";
 import { capturaPermitida, ipDaRequisicao } from "@/server/rate-limit";
 
 // Teto folgado para um lote de 50 SMS de 2000 chars (JSON com escapes).
@@ -105,6 +107,30 @@ export async function POST(req: Request) {
     .onConflictDoNothing({ target: [mensagensSms.usuarioId, mensagensSms.hashDedup] })
     .returning({ id: mensagensSms.id });
 
-  if (inseridas.length > 0) revalidatePath("/fila");
-  return Response.json({ recebidas: valores.length, novas: inseridas.length });
+  // Consulta também mensagens deduplicadas: se uma falha ocorrer depois de
+  // persistir o bruto, o retry consegue completar a interpretação ausente.
+  const mensagensAlvo = await db
+    .select({
+      id: mensagensSms.id,
+      remetente: mensagensSms.remetente,
+      corpo: mensagensSms.corpo,
+    })
+    .from(mensagensSms)
+    .where(
+      and(
+        eq(mensagensSms.usuarioId, usuario.id),
+        inArray(
+          mensagensSms.hashDedup,
+          valores.map((valor) => valor.hashDedup),
+        ),
+      ),
+    );
+  const interpretadas = await persistirInterpretacoesSms(db, mensagensAlvo);
+
+  if (inseridas.length > 0 || interpretadas > 0) revalidatePath("/fila");
+  return Response.json({
+    recebidas: valores.length,
+    novas: inseridas.length,
+    interpretadas,
+  });
 }

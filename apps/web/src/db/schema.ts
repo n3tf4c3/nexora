@@ -1,9 +1,11 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -21,6 +23,7 @@ import {
   STATUS_MENSAGEM_SMS,
   TIPOS_CONTA,
   TIPOS_TRANSACAO,
+  type EventoSmsReconhecido,
 } from "@nexora/core";
 
 export const usuarios = pgTable("usuarios", {
@@ -141,5 +144,36 @@ export const mensagensSms = pgTable(
     ),
     // Fila: pendências por usuário em ordem de chegada (achado 12).
     index("mensagens_sms_usuario_status_recebida_idx").on(t.usuarioId, t.status, t.recebidaEm),
+  ],
+);
+
+/**
+ * Resultado append-only dos parsers. A mensagem bruta permanece independente:
+ * uma versão nova do parser adiciona outra interpretação sem apagar a anterior.
+ */
+export const interpretacoesSms = pgTable(
+  "interpretacoes_sms",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    mensagemId: uuid("mensagem_id")
+      .notNull()
+      .references(() => mensagensSms.id),
+    parserId: varchar("parser_id", { length: 80 }).notNull(),
+    parserVersao: integer("parser_versao").notNull(),
+    evento: varchar("evento", { length: 40 }).notNull(),
+    confianca: integer("confianca").notNull(),
+    transacional: boolean("transacional").notNull(),
+    resultado: jsonb("resultado").$type<EventoSmsReconhecido>().notNull(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("interpretacoes_sms_mensagem_parser_versao_unq").on(
+      t.mensagemId,
+      t.parserId,
+      t.parserVersao,
+    ),
+    check("interpretacoes_sms_parser_versao_chk", sql`${t.parserVersao} > 0`),
+    check("interpretacoes_sms_confianca_chk", sql`${t.confianca} between 0 and 100`),
+    index("interpretacoes_sms_mensagem_criado_idx").on(t.mensagemId, t.criadoEm),
   ],
 );

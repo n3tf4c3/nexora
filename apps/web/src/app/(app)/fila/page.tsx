@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
-import { categorias, contas, mensagensSms } from "@/db/schema";
+import { categorias, contas, interpretacoesSms, mensagensSms } from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
 import { IconeCaixaVazia } from "@/components/icones";
@@ -13,6 +14,18 @@ import { PendenciaForm } from "./pendencia-form";
 const FUSO = "America/Sao_Paulo";
 // Fila é revisada aos poucos; renderizar sem teto degrada com captura acumulada.
 const MAX_PENDENCIAS = 50;
+
+function valorParaCampo(centavos: number): string {
+  const reais = Math.floor(centavos / 100).toLocaleString("pt-BR");
+  return `${reais},${String(centavos % 100).padStart(2, "0")}`;
+}
+
+function rotuloEvento(evento: string): string {
+  if (evento === "pix_recebido") return "Pix recebido";
+  if (evento === "pix_enviado") return "Pix enviado";
+  if (evento === "fatura_fechada") return "Fatura fechada";
+  return evento;
+}
 
 export default async function FilaPage() {
   const usuarioId = await usuarioLogadoId();
@@ -47,6 +60,33 @@ export default async function FilaPage() {
       .orderBy(asc(categorias.nome)),
   ]);
 
+  const interpretacoes =
+    pendencias.length > 0
+      ? await db
+          .select({
+            id: interpretacoesSms.id,
+            mensagemId: interpretacoesSms.mensagemId,
+            parserId: interpretacoesSms.parserId,
+            parserVersao: interpretacoesSms.parserVersao,
+            confianca: interpretacoesSms.confianca,
+            resultado: interpretacoesSms.resultado,
+          })
+          .from(interpretacoesSms)
+          .where(
+            inArray(
+              interpretacoesSms.mensagemId,
+              pendencias.map((pendencia) => pendencia.id),
+            ),
+          )
+          .orderBy(desc(interpretacoesSms.criadoEm), desc(interpretacoesSms.id))
+      : [];
+  const interpretacaoPorMensagem = new Map<string, (typeof interpretacoes)[number]>();
+  for (const interpretacao of interpretacoes) {
+    if (!interpretacaoPorMensagem.has(interpretacao.mensagemId)) {
+      interpretacaoPorMensagem.set(interpretacao.mensagemId, interpretacao);
+    }
+  }
+
   return (
     <>
       <Topo
@@ -70,18 +110,41 @@ export default async function FilaPage() {
                 para ver as demais.
               </p>
             )}
-            {pendencias.map((p) => (
-            <div key={p.id} className="card mb-6">
+            {pendencias.map((p) => {
+              const interpretacao = interpretacaoPorMensagem.get(p.id);
+              const resultado = interpretacao?.resultado;
+              return (
+              <div key={p.id} className="card mb-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 className="card-title m-0">{p.remetente}</h3>
                 <span className="text-[13px] text-(--color-neutral-600)">
                   {p.recebidaEm.toLocaleString("pt-BR", { timeZone: FUSO })}
                 </span>
               </div>
-              <p className="m-0 mb-4 rounded-md bg-(--color-neutral-100) p-3 text-sm whitespace-pre-wrap">
+              {interpretacao && resultado && (
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="rounded-full bg-(--color-accent-100) px-2.5 py-1 font-semibold text-(--color-accent)">
+                    {rotuloEvento(resultado.evento)} reconhecido
+                  </span>
+                  <span className="text-(--color-neutral-600)">
+                    {interpretacao.parserId} v{interpretacao.parserVersao} · {interpretacao.confianca}%
+                  </span>
+                </div>
+              )}
+              <p className="m-0 mb-4 rounded-md bg-(--color-neutral-100) p-3 text-sm whitespace-pre-wrap break-words">
                 {p.corpo}
               </p>
-              {listaContas.length === 0 ? (
+              {resultado && !resultado.transacional ? (
+                <div className="rounded-lg border border-(--color-divider) bg-(--color-neutral-100) p-4 text-sm">
+                  <p className="m-0 font-semibold">Evento informativo, sem nova transação</p>
+                  <p className="mt-1 mb-0 text-(--color-neutral-600)">
+                    Fatura com vencimento dia {resultado.diaVencimento}, total de{" "}
+                    {formatarCentavos(resultado.totalCentavos)} e mínimo de{" "}
+                    {formatarCentavos(resultado.minimoCentavos)}. A associação à fatura será feita
+                    na etapa de cartão de crédito.
+                  </p>
+                </div>
+              ) : listaContas.length === 0 ? (
                 <p className="text-muted m-0 text-sm">
                   Crie uma{" "}
                   <Link href="/contas" className="link">
@@ -93,6 +156,13 @@ export default async function FilaPage() {
                 <PendenciaForm
                   mensagemId={p.id}
                   dataSugerida={p.recebidaEm.toLocaleDateString("en-CA", { timeZone: FUSO })}
+                  tipoSugerido={resultado?.transacional ? resultado.tipoTransacao : undefined}
+                  valorSugerido={
+                    resultado?.transacional ? valorParaCampo(resultado.valorCentavos) : undefined
+                  }
+                  descricaoSugerida={
+                    resultado?.transacional ? resultado.descricaoSugerida : undefined
+                  }
                   contas={listaContas}
                   categorias={listaCategorias}
                 />
@@ -106,7 +176,8 @@ export default async function FilaPage() {
                 </BotaoConfirmar>
               </form>
             </div>
-            ))}
+              );
+            })}
           </>
         )}
       </div>
