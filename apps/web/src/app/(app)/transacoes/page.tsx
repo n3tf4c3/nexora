@@ -1,11 +1,13 @@
 import Link from "next/link";
+import Form from "next/form";
 import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
 import { categorias, contas, transacoes } from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
-import { IconeMais } from "@/components/icones";
+import { IconeCategoria } from "@/components/icone-categoria";
+import { IconeBusca, IconeMais } from "@/components/icones";
 import { Topo } from "@/components/topo";
 import { hojeISO } from "@/lib/hoje";
 import { uuidValido } from "@/server/form";
@@ -108,7 +110,7 @@ export default async function TransacoesPage({
         </a>
       </Topo>
 
-      <div className="mx-auto w-full max-w-[1160px] p-6">
+      <div className="mx-auto w-full max-w-[1160px] p-4 sm:p-6">
         <div id="nova-transacao" className="card mb-6">
           <h3 className="card-title mb-[2px]">Nova transação</h3>
           {listaContas.length === 0 ? (
@@ -125,17 +127,34 @@ export default async function TransacoesPage({
         </div>
 
         <div className="card">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <h3 className="card-title">Todas as transações</h3>
-            {busca && (
-              <span className="text-[13px] text-(--color-neutral-600)">
-                Filtrando por &quot;{busca}&quot; —{" "}
-                <Link href="/transacoes" className="link">
-                  limpar
-                </Link>
-              </span>
-            )}
+            <Form action="/transacoes" className="relative w-full sm:w-[280px]">
+              <IconeBusca
+                tamanho={15}
+                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-neutral-400)"
+              />
+              <input
+                key={busca}
+                className="input pl-9"
+                type="search"
+                name="q"
+                defaultValue={busca}
+                maxLength={BUSCA_MAX}
+                placeholder="Buscar transações..."
+                aria-label="Buscar transações"
+              />
+            </Form>
           </div>
+
+          {busca && (
+            <p className="mt-0 mb-4 text-[13px] text-(--color-neutral-600)">
+              Filtrando por &quot;{busca}&quot; ·{" "}
+              <Link href="/transacoes" className="link">
+                limpar busca
+              </Link>
+            </p>
+          )}
 
           {lista.length === 0 ? (
             <div className="estado-vazio">
@@ -147,7 +166,7 @@ export default async function TransacoesPage({
             </div>
           ) : (
             <>
-              <div className="hidden overflow-x-auto md:block">
+              <div className="hidden overflow-x-auto lg:block">
                 <table className="table">
                   <thead>
                     <tr>
@@ -178,7 +197,12 @@ export default async function TransacoesPage({
                             {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)}
                           </td>
                           <td>{t.descricao ?? "—"}</td>
-                          <td>{t.categoria ?? "—"}</td>
+                          <td>
+                            <span className="flex items-center gap-2 whitespace-nowrap">
+                              <IconeCategoria nome={t.categoria} tamanho={28} />
+                              {t.categoria ?? "Sem categoria"}
+                            </span>
+                          </td>
                           <td>{t.conta}</td>
                           <td
                             className="text-right font-semibold whitespace-nowrap"
@@ -192,7 +216,7 @@ export default async function TransacoesPage({
                             {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
                           </td>
                           <td className="text-right">
-                            <span className="flex items-center justify-end gap-3">
+                            <div className="flex items-center justify-end gap-3">
                               <Link href={`/transacoes?editar=${t.id}`} className="link text-[13px]">
                                 Editar
                               </Link>
@@ -204,7 +228,7 @@ export default async function TransacoesPage({
                                   Excluir
                                 </BotaoConfirmar>
                               </form>
-                            </span>
+                            </div>
                           </td>
                         </tr>
                       ),
@@ -212,7 +236,7 @@ export default async function TransacoesPage({
                   </tbody>
                 </table>
               </div>
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 {lista.map((t) =>
                   t.id === editarId ? (
                     <div key={t.id} className="border-b border-(--color-divider) py-3">
@@ -224,42 +248,49 @@ export default async function TransacoesPage({
                       />
                     </div>
                   ) : (
-                    <div key={t.id} className="border-b border-(--color-divider) py-[10px]">
-                      <div className="flex justify-between gap-2">
-                        <strong className="text-[14px]">{t.descricao ?? "—"}</strong>
-                        <span
-                          className="font-semibold whitespace-nowrap"
-                          style={{
-                            color:
-                              t.tipo === "entrada"
-                                ? "var(--color-income)"
-                                : "var(--color-expense)",
-                          }}
-                        >
-                          {t.tipo === "entrada" ? "+" : "−"} {formatarCentavos(t.valorCentavos)}
-                        </span>
-                      </div>
-                      <div className="mb-1 text-[12px] text-(--color-neutral-600)">
-                        {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)} ·{" "}
-                        {t.categoria ?? "—"} · {t.conta}
-                      </div>
-                      <span className="flex items-center gap-3">
-                        <Link
-                          href={`/transacoes?editar=${t.id}`}
-                          className="link text-[12px]"
-                        >
-                          Editar
-                        </Link>
-                        <form action={excluirTransacao.bind(null, t.id)}>
-                          <BotaoConfirmar
-                            mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
-                            className={botaoPerigo}
-                            style={{ fontSize: 12 }}
+                    <div
+                      key={t.id}
+                      className="flex gap-3 border-b border-(--color-divider) py-[10px]"
+                    >
+                      <IconeCategoria nome={t.categoria} tamanho={36} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex justify-between gap-2">
+                          <strong className="truncate text-[14px]">{t.descricao ?? "—"}</strong>
+                          <span
+                            className="font-semibold whitespace-nowrap"
+                            style={{
+                              color:
+                                t.tipo === "entrada"
+                                  ? "var(--color-income)"
+                                  : "var(--color-expense)",
+                            }}
                           >
-                            Excluir
-                          </BotaoConfirmar>
-                        </form>
-                      </span>
+                            {t.tipo === "entrada" ? "+" : "−"}{" "}
+                            {formatarCentavos(t.valorCentavos)}
+                          </span>
+                        </div>
+                        <div className="mb-1 text-[12px] text-(--color-neutral-600)">
+                          {t.data.slice(8, 10)}/{t.data.slice(5, 7)}/{t.data.slice(0, 4)} ·{" "}
+                          {t.categoria ?? "Sem categoria"} · {t.conta}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/transacoes?editar=${t.id}`}
+                            className="link text-[12px]"
+                          >
+                            Editar
+                          </Link>
+                          <form action={excluirTransacao.bind(null, t.id)}>
+                            <BotaoConfirmar
+                              mensagem="Excluir esta transação? Se ela veio de um SMS, a mensagem volta para a fila."
+                              className={botaoPerigo}
+                              style={{ fontSize: 12 }}
+                            >
+                              Excluir
+                            </BotaoConfirmar>
+                          </form>
+                        </div>
+                      </div>
                     </div>
                   ),
                 )}

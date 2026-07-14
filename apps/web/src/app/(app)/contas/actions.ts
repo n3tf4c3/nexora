@@ -17,17 +17,19 @@ export async function criarConta(
   const parse = contaInputSchema.safeParse({
     nome: formData.get("nome"),
     tipo: formData.get("tipo"),
+    icone: formData.get("icone"),
     diaFechamento: formData.get("diaFechamento") || undefined,
     diaVencimento: formData.get("diaVencimento") || undefined,
   });
   if (!parse.success) return { erro: primeiroErro(parse.error) };
 
-  const { nome, tipo, diaFechamento, diaVencimento } = parse.data;
+  const { nome, tipo, icone, diaFechamento, diaVencimento } = parse.data;
   try {
     await db.insert(contas).values({
       usuarioId,
       nome,
       tipo,
+      icone,
       diaFechamento: tipo === "cartao_credito" ? diaFechamento : null,
       diaVencimento: tipo === "cartao_credito" ? diaVencimento : null,
     });

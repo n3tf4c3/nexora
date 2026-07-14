@@ -12,6 +12,18 @@ import {
 export const TIPOS_CONTA = ["corrente", "carteira", "cartao_credito"] as const;
 export type TipoConta = (typeof TIPOS_CONTA)[number];
 
+export const ICONES_CONTA = ["banco", "cartao", "dinheiro", "poupanca", "investimento"] as const;
+export type TipoIconeConta = (typeof ICONES_CONTA)[number];
+
+export const CATEGORIAS_PADRAO = [
+  "Alimentação",
+  "Transporte",
+  "Moradia",
+  "Lazer",
+  "Saúde",
+  "Assinaturas",
+] as const;
+
 export const TIPOS_TRANSACAO = ["entrada", "saida"] as const;
 export type TipoTransacao = (typeof TIPOS_TRANSACAO)[number];
 
@@ -28,6 +40,7 @@ export const contaInputSchema = z
   .object({
     nome: nomeSchema(NOME_CONTA_MAX),
     tipo: z.enum(TIPOS_CONTA),
+    icone: z.enum(ICONES_CONTA),
     diaFechamento: diaDoMes.optional(),
     diaVencimento: diaDoMes.optional(),
   })

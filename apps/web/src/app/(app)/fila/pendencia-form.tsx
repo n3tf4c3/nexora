@@ -17,6 +17,7 @@ export function PendenciaForm({
   categoriaSugeridaId,
   contas,
   categorias,
+  onCancelar,
 }: {
   mensagemId: string;
   dataSugerida: string;
@@ -27,6 +28,7 @@ export function PendenciaForm({
   categoriaSugeridaId?: string;
   contas: Opcao[];
   categorias: Opcao[];
+  onCancelar: () => void;
 }) {
   const [estado, agir, pendente] = useActionState(confirmarSms, {});
   const id = useId();
@@ -34,7 +36,7 @@ export function PendenciaForm({
   return (
     <form action={agir}>
       <input type="hidden" name="mensagemId" value={mensagemId} />
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <fieldset className="field m-0 border-0 p-0">
           <legend className="p-0">Tipo</legend>
           <div className="seg">
@@ -143,9 +145,19 @@ export function PendenciaForm({
           {estado.erro}
         </p>
       )}
-      <button type="submit" disabled={pendente} className={`${botaoPrimario} mt-3`}>
-        {pendente ? "Confirmando..." : "Confirmar como transação"}
-      </button>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button type="submit" disabled={pendente} className={botaoPrimario}>
+          {pendente ? "Salvando..." : "Salvar transação"}
+        </button>
+        <button
+          type="button"
+          disabled={pendente}
+          className="btn btn-secondary"
+          onClick={onCancelar}
+        >
+          Cancelar
+        </button>
+      </div>
     </form>
   );
 }

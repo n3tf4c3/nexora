@@ -4,6 +4,8 @@ import { categorias, contas } from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
 import { IconeMais } from "@/components/icones";
+import { IconeCategoria } from "@/components/icone-categoria";
+import { IconeConta } from "@/components/icone-conta";
 import { Topo } from "@/components/topo";
 import { usuarioLogadoId } from "@/server/posse";
 import { excluirCategoria } from "../categorias/actions";
@@ -42,14 +44,14 @@ export default async function ContasPage({
         </a>
       </Topo>
 
-      <div className="mx-auto w-full max-w-[1160px] p-6">
+      <div className="mx-auto w-full max-w-[1160px] p-4 sm:p-6">
         {erro && (
           <p className="mb-6 rounded-(--radius-md) bg-(--color-error-bg) p-3 text-sm text-(--color-error)">
             {erro}
           </p>
         )}
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="card">
             <h3 className="card-title mb-[2px]">Contas</h3>
             <ContaForm />
@@ -64,16 +66,19 @@ export default async function ContasPage({
                     key={c.id}
                     className="flex items-start justify-between gap-[10px] border-b border-(--color-divider) py-[10px]"
                   >
-                    <div>
-                      <strong className="text-[14px]">{c.nome}</strong>
-                      <div className="text-[12px] text-(--color-neutral-600)">
-                        {rotuloTipo[c.tipo]}
-                      </div>
-                      {c.tipo === "cartao_credito" && (
+                    <div className="flex min-w-0 items-start gap-3">
+                      <IconeConta tipo={c.icone} tamanho={32} />
+                      <div>
+                        <strong className="text-[14px]">{c.nome}</strong>
                         <div className="text-[12px] text-(--color-neutral-600)">
-                          Fecha dia {c.diaFechamento}, vence dia {c.diaVencimento}.
+                          {rotuloTipo[c.tipo]}
                         </div>
-                      )}
+                        {c.tipo === "cartao_credito" && (
+                          <div className="text-[12px] text-(--color-neutral-600)">
+                            Fecha dia {c.diaFechamento}, vence dia {c.diaVencimento}.
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <form action={excluirConta.bind(null, c.id)}>
                       <BotaoConfirmar
@@ -104,7 +109,10 @@ export default async function ContasPage({
                     key={c.id}
                     className="flex items-center justify-between gap-[10px] border-b border-(--color-divider) py-[10px]"
                   >
-                    <span className="text-[14px]">{c.nome}</span>
+                    <span className="flex items-center gap-3 text-[14px]">
+                      <IconeCategoria nome={c.nome} tamanho={28} />
+                      {c.nome}
+                    </span>
                     <form action={excluirCategoria.bind(null, c.id)}>
                       <BotaoConfirmar
                         mensagem={`Excluir a categoria "${c.nome}"?`}

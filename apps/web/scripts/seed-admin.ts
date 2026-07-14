@@ -4,7 +4,8 @@ import { drizzle } from "drizzle-orm/neon-http";
 import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { usuarios } from "../src/db/schema";
+import { CATEGORIAS_PADRAO } from "@nexora/core";
+import { categorias, usuarios } from "../src/db/schema";
 
 // Achado 20: a única conta do sistema não pode nascer com credencial trivial.
 const parse = z
@@ -34,14 +35,22 @@ const db = drizzle(neon(parse.data.DATABASE_URL));
 
 async function main() {
   const senhaHash = await bcrypt.hash(senha, 12);
-  await db
+  const [usuario] = await db
     .insert(usuarios)
     .values({ email, senhaHash })
     .onConflictDoUpdate({
       target: usuarios.email,
       set: { senhaHash, credenciaisAtualizadasEm: sql`now()` },
-    });
-  console.log(`Usuário ${email} criado/atualizado.`);
+    })
+    .returning({ id: usuarios.id });
+  if (!usuario) throw new Error("Não foi possível criar ou localizar o usuário administrador.");
+
+  await db
+    .insert(categorias)
+    .values(CATEGORIAS_PADRAO.map((nome) => ({ usuarioId: usuario.id, nome })))
+    .onConflictDoNothing({ target: [categorias.usuarioId, categorias.nome] });
+
+  console.log(`Usuário ${email} criado/atualizado com categorias padrão.`);
 }
 
 main().catch((erro) => {

@@ -43,9 +43,9 @@
   --radius-md: 10px;
   --radius-lg: 16px;
 
-  --shadow-sm: 0 1px 3px rgba(23, 23, 23, 0.07);
-  --shadow-md: 0 6px 20px rgba(23, 23, 23, 0.08);
-  --shadow-lg: 0 16px 40px rgba(23, 23, 23, 0.14);
+  --shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.05);
+  --shadow-md: 0 6px 16px rgba(23, 23, 23, 0.06);
+  --shadow-lg: 0 16px 32px rgba(23, 23, 23, 0.09);
 
   /* Identidade Nexora — paleta "Violeta Noturno" (handoff Nexora Identidade). */
   --marca-escuro: oklch(19% 0.03 290);
@@ -54,12 +54,12 @@
   --marca-acento-suave: oklch(94% 0.02 290);
   --marca-acento-2: oklch(64% 0.19 25);
 
-  --color-income: #008138;
-  --color-income-bg: #e8f6ec;
-  --color-expense: #bf000f;
-  --color-expense-bg: #fdeaec;
-  --color-error: #e40014;
-  --color-error-bg: #fef2f2;
+  --color-income: oklch(49% 0.1 155);
+  --color-income-bg: oklch(95% 0.025 155);
+  --color-expense: oklch(50% 0.11 32);
+  --color-expense-bg: oklch(95% 0.022 32);
+  --color-error: oklch(49% 0.13 26);
+  --color-error-bg: oklch(95% 0.025 26);
 }
 
 body {
@@ -80,6 +80,28 @@ body {
 }
 ::selection {
   background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 50;
+  transform: translateY(-150%);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: white;
+  padding: 8px 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.seletor-icone:has(input:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* — links — */
@@ -288,7 +310,7 @@ select.input {
   background: var(--color-neutral-100);
 }
 .link-nav.ativo {
-  color: var(--color-accent);
+  color: var(--color-accent-700);
   font-weight: 700;
   background: var(--color-accent-100);
 }

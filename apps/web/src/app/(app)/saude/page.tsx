@@ -118,7 +118,7 @@ export default async function SaudeAutomacaoPage() {
         </Link>
       </Topo>
 
-      <div className="mx-auto w-full max-w-[1160px] p-6">
+      <div className="mx-auto w-full max-w-[1160px] p-4 sm:p-6">
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {cartoes.map((cartao) => (
             <div key={cartao.rotulo} className="card">

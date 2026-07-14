@@ -57,6 +57,13 @@
       "when": 1784060140725,
       "tag": "0007_dapper_moonstone",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784062903883,
+      "tag": "0008_low_starbolt",
+      "breakpoints": true
     }
   ]
 }

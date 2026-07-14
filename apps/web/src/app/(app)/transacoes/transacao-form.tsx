@@ -53,7 +53,7 @@ export function TransacaoForm({
 
   return (
     <form ref={formRef} action={agir}>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <fieldset className="field m-0 border-0 p-0">
           <legend className="p-0">Tipo</legend>
           <div className="seg">
@@ -136,7 +136,7 @@ export function TransacaoForm({
             ))}
           </select>
         </div>
-        <div className="field md:col-span-3">
+        <div className="field lg:col-span-3">
           <label htmlFor={`${id}-descricao`}>Descrição</label>
           <input
             id={`${id}-descricao`}

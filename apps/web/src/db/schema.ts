@@ -17,6 +17,7 @@ import {
 import {
   CORPO_SMS_MAX,
   DESCRICAO_TRANSACAO_MAX,
+  ICONES_CONTA,
   NOME_CATEGORIA_MAX,
   NOME_CONTA_MAX,
   REMETENTE_SMS_MAX,
@@ -38,6 +39,7 @@ export const usuarios = pgTable("usuarios", {
 });
 
 export const tipoConta = pgEnum("tipo_conta", TIPOS_CONTA);
+export const tipoIconeConta = pgEnum("tipo_icone_conta", ICONES_CONTA);
 export const tipoTransacao = pgEnum("tipo_transacao", TIPOS_TRANSACAO);
 export const statusMensagemSms = pgEnum("status_mensagem_sms", STATUS_MENSAGEM_SMS);
 
@@ -50,6 +52,7 @@ export const contas = pgTable(
       .references(() => usuarios.id),
     nome: varchar("nome", { length: NOME_CONTA_MAX }).notNull(),
     tipo: tipoConta("tipo").notNull(),
+    icone: tipoIconeConta("icone").notNull().default("banco"),
     // Só para cartão de crédito (validado no contrato do core).
     diaFechamento: integer("dia_fechamento"),
     diaVencimento: integer("dia_vencimento"),
