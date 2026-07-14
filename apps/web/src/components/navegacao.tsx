@@ -8,15 +8,17 @@ import {
   IconeContas,
   IconeDashboard,
   IconeFila,
+  IconePulso,
   IconeTransacoes,
 } from "./icones";
 import { LogoNexora } from "./logo";
 
 const itens = [
-  { href: "/fila", rotulo: "Fila de confirmação", icone: IconeFila },
-  { href: "/", rotulo: "Dashboard", icone: IconeDashboard },
-  { href: "/transacoes", rotulo: "Transações", icone: IconeTransacoes },
-  { href: "/contas", rotulo: "Contas e categorias", icone: IconeContas },
+  { href: "/fila", rotulo: "Fila de confirmação", rotuloMobile: "Fila", icone: IconeFila },
+  { href: "/saude", rotulo: "Saúde da automação", rotuloMobile: "Saúde", icone: IconePulso },
+  { href: "/", rotulo: "Dashboard", rotuloMobile: "Início", icone: IconeDashboard },
+  { href: "/transacoes", rotulo: "Transações", rotuloMobile: "Transações", icone: IconeTransacoes },
+  { href: "/contas", rotulo: "Contas e categorias", rotuloMobile: "Contas", icone: IconeContas },
 ];
 
 function estaAtivo(pathname: string, href: string) {
@@ -55,7 +57,11 @@ export function Sidebar({ hoje, sair }: { hoje: string; sair: () => Promise<void
         <div className="mb-2 text-[11px] font-bold tracking-[0.06em] text-white/40 uppercase">
           Geral
         </div>
-        <Link href="/" className={`link-nav${estaAtivo(pathname, "/") ? " ativo" : ""}`}>
+        <Link
+          href="/"
+          aria-current={estaAtivo(pathname, "/") ? "page" : undefined}
+          className={`link-nav${estaAtivo(pathname, "/") ? " ativo" : ""}`}
+        >
           <span className="flex items-center gap-[10px]">
             <IconeDashboard />
             Dashboard
@@ -73,6 +79,7 @@ export function Sidebar({ hoje, sair }: { hoje: string; sair: () => Promise<void
             <Link
               key={i.href}
               href={i.href}
+              aria-current={estaAtivo(pathname, i.href) ? "page" : undefined}
               className={`link-nav${estaAtivo(pathname, i.href) ? " ativo" : ""}`}
             >
               <span className="flex items-center gap-[10px]">
@@ -97,27 +104,33 @@ export function NavMobile({ sair }: { sair: () => Promise<void> }) {
   const pathname = usePathname();
 
   return (
-    <div className="sticky top-0 z-10 flex w-full flex-wrap items-center gap-x-4 gap-y-1 bg-(--marca-escuro) px-4 py-3 text-white shadow-(--shadow-sm) md:hidden">
-      <span className="mr-auto flex items-center gap-2">
-        <LogoNexora caixa={28} raio={8} icone={15} fundo="var(--marca-escuro-suave)" />
-        <span className="fonte-marca text-[18px]">Nexora</span>
-      </span>
-      {itens.map((i) => {
-        const ativo = estaAtivo(pathname, i.href);
-        return (
-          <Link
-            key={i.href}
-            href={i.href}
-            aria-current={ativo ? "page" : undefined}
-            className={`text-[14px] ${ativo ? "font-bold text-white underline" : "text-white/70"}`}
-          >
-            {i.rotulo}
-          </Link>
-        );
-      })}
-      <form action={sair}>
-        <button className="text-[14px] text-white/60">Sair</button>
-      </form>
-    </div>
+    <header className="sticky top-0 z-10 w-full bg-(--marca-escuro) px-3 pt-3 text-white shadow-(--shadow-sm) md:hidden">
+      <div className="flex items-center justify-between px-1 pb-2">
+        <span className="flex items-center gap-2">
+          <LogoNexora caixa={28} raio={8} icone={15} fundo="var(--marca-escuro-suave)" />
+          <span className="fonte-marca text-[18px]">Nexora</span>
+        </span>
+        <form action={sair}>
+          <button className="min-h-11 px-2 text-[14px] text-white/70">Sair</button>
+        </form>
+      </div>
+      <nav aria-label="Navegação principal" className="flex w-full gap-1 overflow-x-auto pb-2">
+        {itens.map((i) => {
+          const ativo = estaAtivo(pathname, i.href);
+          return (
+            <Link
+              key={i.href}
+              href={i.href}
+              aria-current={ativo ? "page" : undefined}
+              className={`flex min-h-11 shrink-0 items-center rounded-lg px-3 text-[13px] ${
+                ativo ? "bg-white/12 font-bold text-white" : "text-white/70"
+              }`}
+            >
+              {i.rotuloMobile}
+            </Link>
+          );
+        })}
+      </nav>
+    </header>
   );
 }

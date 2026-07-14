@@ -74,12 +74,13 @@ Fase 2A — Transporte por SMS (concluída)
   painel mobile mostra saúde da captura e a fila web recebe a mensagem.
   → verificado: Pix Itaú real capturado com app fechado, enviado e persistido como pendência.
 
-Fase 2B — Interpretação assistida
+Fase 2B — Interpretação assistida (concluída)
   API executa parsers versionados no servidor e pré-preenche a fila sem confirmar sozinha.
   → verificar: Pix Itaú recebido/enviado chega com tipo, valor e descrição corretos.
 
-Fase 2C — Cobertura e confiança operacional
-  Medir cobertura banco × evento, correções humanas e idade das filas local/web.
+Fase 2C — Cobertura e confiança operacional (em validação)
+  Medir cobertura banco × evento, correções humanas e idade das filas local/web;
+  reaproveitar conta/categoria somente de confirmações anteriores equivalentes.
   → verificar: falha de permissão, rede ou credencial fica visível e nenhuma lacuna é silenciosa.
 
 Fase 3 — Cartão de crédito

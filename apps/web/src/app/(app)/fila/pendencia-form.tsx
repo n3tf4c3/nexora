@@ -13,6 +13,8 @@ export function PendenciaForm({
   tipoSugerido = "saida",
   valorSugerido,
   descricaoSugerida,
+  contaSugeridaId,
+  categoriaSugeridaId,
   contas,
   categorias,
 }: {
@@ -21,6 +23,8 @@ export function PendenciaForm({
   tipoSugerido?: "entrada" | "saida";
   valorSugerido?: string;
   descricaoSugerida?: string;
+  contaSugeridaId?: string;
+  categoriaSugeridaId?: string;
   contas: Opcao[];
   categorias: Opcao[];
 }) {
@@ -80,7 +84,13 @@ export function PendenciaForm({
         </div>
         <div className="field">
           <label htmlFor={`${id}-conta`}>Conta</label>
-          <select id={`${id}-conta`} name="contaId" required defaultValue="" className={campo}>
+          <select
+            id={`${id}-conta`}
+            name="contaId"
+            required
+            defaultValue={contaSugeridaId ?? ""}
+            className={campo}
+          >
             <option value="" disabled>
               Selecione
             </option>
@@ -93,7 +103,12 @@ export function PendenciaForm({
         </div>
         <div className="field">
           <label htmlFor={`${id}-categoria`}>Categoria (opcional)</label>
-          <select id={`${id}-categoria`} name="categoriaId" defaultValue="" className={campo}>
+          <select
+            id={`${id}-categoria`}
+            name="categoriaId"
+            defaultValue={categoriaSugeridaId ?? ""}
+            className={campo}
+          >
             <option value="">Nenhuma</option>
             {categorias.map((c) => (
               <option key={c.id} value={c.id}>
@@ -114,6 +129,15 @@ export function PendenciaForm({
           />
         </div>
       </div>
+      {(contaSugeridaId || categoriaSugeridaId) && (
+        <p className="mt-2 mb-0 text-xs text-(--color-neutral-600)">
+          {contaSugeridaId && categoriaSugeridaId
+            ? "Conta e categoria reaproveitadas de confirmações anteriores equivalentes."
+            : contaSugeridaId
+              ? "Conta reaproveitada de uma confirmação anterior equivalente."
+              : "Categoria reaproveitada de uma confirmação anterior equivalente."}
+        </p>
+      )}
       {estado.erro && (
         <p role="alert" className="mt-3 mb-0 text-sm text-(--color-error)">
           {estado.erro}

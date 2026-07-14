@@ -50,6 +50,13 @@
       "when": 1784057534027,
       "tag": "0006_dashing_cassandra_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784060140725,
+      "tag": "0007_dapper_moonstone",
+      "breakpoints": true
     }
   ]
 }

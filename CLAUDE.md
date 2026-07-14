@@ -14,7 +14,7 @@ Decisões-fundação (não reabrir sem motivo):
 
 ## Estado atual
 
-Fase 1 (núcleo financeiro web) concluída. Fase 2A também concluída e validada em aparelho real: módulo nativo Android recebe SMS com o app fechado, filtra por allowlist, guarda fila SQLite, sincroniza por WorkManager e envia o bruto à API; a fila web recebe a pendência. Fase 2B em andamento: parsers canônicos executam no servidor após a persistência, com resultados versionados e fila pré-preenchida. Parsers novos continuam proibidos sem amostras reais sanitizadas em `docs/SMS-AMOSTRAS.md`.
+Fase 1 (núcleo financeiro web) concluída. Fase 2A concluída e validada em aparelho real: módulo nativo Android recebe SMS com o app fechado, filtra por allowlist, guarda fila SQLite, sincroniza por WorkManager e envia o bruto à API. Fase 2B concluída: parsers canônicos executam no servidor após a persistência, com resultados versionados e fila pré-preenchida. Fase 2C em validação: página privada mede cobertura/precisão e a fila reaproveita conta/categoria de confirmações equivalentes. Parsers novos continuam proibidos sem amostras reais sanitizadas em `docs/SMS-AMOSTRAS.md`.
 
 ## Comandos (raiz)
 

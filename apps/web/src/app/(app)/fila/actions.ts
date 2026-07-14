@@ -74,7 +74,7 @@ export async function confirmarSms(
       returning id
     )
     update mensagens_sms m
-    set status = 'confirmada', transacao_id = nova.id
+    set status = 'confirmada', transacao_id = nova.id, revisada_em = now()
     from nova
     where m.id = ${mensagemId}
     returning m.id
@@ -90,7 +90,7 @@ export async function ignorarSms(id: string): Promise<void> {
   if (!uuidValido(id)) return;
   await db
     .update(mensagensSms)
-    .set({ status: "ignorada" })
+    .set({ status: "ignorada", revisadaEm: sql`now()` })
     .where(
       and(
         eq(mensagensSms.id, id),

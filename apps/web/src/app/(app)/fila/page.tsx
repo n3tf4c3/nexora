@@ -2,12 +2,19 @@ import Link from "next/link";
 import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
-import { categorias, contas, interpretacoesSms, mensagensSms } from "@/db/schema";
+import {
+  categorias,
+  contas,
+  interpretacoesSms,
+  mensagensSms,
+  transacoes,
+} from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo } from "@/components/estilos";
 import { IconeCaixaVazia } from "@/components/icones";
 import { Topo } from "@/components/topo";
 import { usuarioLogadoId } from "@/server/posse";
+import { sugerirClassificacaoSms } from "@/server/automacao-sms";
 import { ignorarSms } from "./actions";
 import { PendenciaForm } from "./pendencia-form";
 
@@ -87,6 +94,40 @@ export default async function FilaPage() {
     }
   }
 
+  const pendenciasTransacionais = pendencias.flatMap((pendencia) => {
+    const resultado = interpretacaoPorMensagem.get(pendencia.id)?.resultado;
+    return resultado?.transacional ? [{ ...pendencia, resultado }] : [];
+  });
+  const historicoClassificacao =
+    pendenciasTransacionais.length > 0
+      ? await db
+          .select({
+            remetente: mensagensSms.remetente,
+            resultado: interpretacoesSms.resultado,
+            contaId: transacoes.contaId,
+            categoriaId: transacoes.categoriaId,
+          })
+          .from(mensagensSms)
+          .innerJoin(transacoes, eq(transacoes.id, mensagensSms.transacaoId))
+          .innerJoin(interpretacoesSms, eq(interpretacoesSms.mensagemId, mensagensSms.id))
+          .where(
+            and(
+              eq(mensagensSms.usuarioId, usuarioId),
+              eq(mensagensSms.status, "confirmada"),
+              inArray(
+                mensagensSms.remetente,
+                [...new Set(pendenciasTransacionais.map((pendencia) => pendencia.remetente))],
+              ),
+              inArray(
+                interpretacoesSms.evento,
+                [...new Set(pendenciasTransacionais.map((pendencia) => pendencia.resultado.evento))],
+              ),
+            ),
+          )
+          .orderBy(desc(mensagensSms.recebidaEm), desc(interpretacoesSms.criadoEm))
+          .limit(500)
+      : [];
+
   return (
     <>
       <Topo
@@ -113,6 +154,12 @@ export default async function FilaPage() {
             {pendencias.map((p) => {
               const interpretacao = interpretacaoPorMensagem.get(p.id);
               const resultado = interpretacao?.resultado;
+              const sugestao = resultado
+                ? sugerirClassificacaoSms(
+                    { remetente: p.remetente, resultado },
+                    historicoClassificacao,
+                  )
+                : {};
               return (
               <div key={p.id} className="card mb-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -163,6 +210,8 @@ export default async function FilaPage() {
                   descricaoSugerida={
                     resultado?.transacional ? resultado.descricaoSugerida : undefined
                   }
+                  contaSugeridaId={sugestao.contaId}
+                  categoriaSugeridaId={sugestao.categoriaId}
                   contas={listaContas}
                   categorias={listaCategorias}
                 />

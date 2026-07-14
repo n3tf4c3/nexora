@@ -101,7 +101,7 @@ export async function excluirTransacao(id: string): Promise<void> {
   await db.batch([
     db
       .update(mensagensSms)
-      .set({ status: "pendente", transacaoId: null })
+      .set({ status: "pendente", transacaoId: null, revisadaEm: null })
       .where(and(eq(mensagensSms.transacaoId, id), eq(mensagensSms.usuarioId, usuarioId))),
     db
       .delete(transacoes)

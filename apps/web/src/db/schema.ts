@@ -125,6 +125,9 @@ export const mensagensSms = pgTable(
     // mas duas compras idênticas em instantes diferentes continuam distintas.
     hashDedup: varchar("hash_dedup", { length: 64 }).notNull(),
     status: statusMensagemSms("status").notNull().default("pendente"),
+    // Momento da decisão humana. Pendente não possui carimbo; confirmar ou
+    // ignorar preenche, e excluir a transação devolve a mensagem a pendente.
+    revisadaEm: timestamp("revisada_em", { withTimezone: true }),
     // Preenchido quando a revisão na fila confirma a mensagem como transação.
     // Excluir a transação desvincula a mensagem (volta a pendente) no mesmo
     // batch atômico — por isso a FK é NO ACTION, não SET NULL.
@@ -141,6 +144,10 @@ export const mensagensSms = pgTable(
     check(
       "mensagens_sms_status_vinculo_chk",
       sql`(${t.status} = 'confirmada') = (${t.transacaoId} is not null)`,
+    ),
+    check(
+      "mensagens_sms_status_revisao_chk",
+      sql`(${t.status} = 'pendente') = (${t.revisadaEm} is null)`,
     ),
     // Fila: pendências por usuário em ordem de chegada (achado 12).
     index("mensagens_sms_usuario_status_recebida_idx").on(t.usuarioId, t.status, t.recebidaEm),

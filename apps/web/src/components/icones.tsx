@@ -54,6 +54,14 @@ export function IconeFila(p: Props) {
   );
 }
 
+export function IconePulso(p: Props) {
+  return (
+    <Icone {...p}>
+      <path d="M3 12h4l2.5-6 5 12 2.5-6h4" />
+    </Icone>
+  );
+}
+
 export function IconeTransacoes(p: Props) {
   return (
     <Icone {...p}>

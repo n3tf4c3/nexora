@@ -502,7 +502,8 @@ Atualizado em 2026-07-14:
 - Etapa 1 concluída: runner de migrations atômico, mobile reduzido a captura/diagnóstico, teste de conexão, telemetria local segura, testes JVM e build Android no CI.
 - Transporte validado em aparelho real: SMS Itaú recebido com app fechado, enviado com HTTP 200 e persistido no Neon.
 - Etapa 2 implementada localmente: parsers Itaú Pix e fatura Amazon no core, interpretações append-only e fila web pré-preenchida.
-- Pendente para concluir a Etapa 2: aplicar a migration aditiva, reprocessar o histórico e publicar o backend/frontend.
+- Etapa 2 publicada: migration aplicada, histórico reprocessado e parser/fila em produção.
+- Fase 2C implementada: aprendizado conservador de conta/categoria e painel privado de cobertura, precisão, correções e tempo de revisão.
 
 ## Itens que não devem ser feitos agora
 
