@@ -21,11 +21,12 @@ Ferramenta financeira pessoal que captura pagamentos via SMS do celular e organi
 ```
 apps/mobile (Expo + dev client, Android)
   ├─ BroadcastReceiver de SMS (módulo nativo / config plugin — RECEIVE_SMS)
-  ├─ Parse local usando packages/core
-  └─ Envia à API: texto cru + transação estruturada (quando o parser reconhece)
+  ├─ Fila local durável + WorkManager
+  └─ Envia à API somente o SMS cru
 
 apps/web (Next.js na Vercel)
-  ├─ API (route handlers) — recebe capturas, CRUD de tudo
+  ├─ API persiste o bruto antes de interpretar
+  ├─ Executa os parsers canônicos do packages/core no servidor
   ├─ Dashboard mensal, faturas, recorrências, projetos, investimentos
   └─ Fila de confirmação: SMS não reconhecidos viram pendências para revisão manual
 
@@ -39,6 +40,7 @@ Pontos de desenho importantes:
 - **SMS cru sempre é guardado** (`raw_messages`): permite reprocessar quando um parser melhora e auditar o que foi capturado.
 - **Deduplicação** por hash de remetente + instante exato de recebimento + corpo (reenvio/retry do app não duplica). Decisão (achado 10 da auditoria de 2026-07-13): janela temporal foi descartada porque fundiria compras idênticas legítimas feitas em instantes próximos; o retry do app reenvia o mesmo timestamp, então o caso real de duplicação está coberto. Evolução natural na Fase 2: usar o identificador estável do SMS fornecido pelo Android.
 - **Parser incerto → pendência**, nunca transação silenciosamente errada. A fila de confirmação é o mecanismo de segurança do sistema todo.
+- **Parsing canônico no servidor**: o receiver e o WorkManager funcionam sem runtime JavaScript; portar regex para Kotlin duplicaria regras. O Android envia o bruto, a API persiste primeiro e só então executa `packages/core`. Cada resultado guarda parser, versão e confiança para permitir reprocessamento sem apagar o histórico.
 - Expo managed não lê SMS: será necessário **dev client** com módulo nativo (ex.: config plugin próprio ou lib tipo `react-native-get-sms-android`), build via EAS ou local.
 
 ## Modelo de dados (alto nível)
@@ -52,6 +54,7 @@ Pontos de desenho importantes:
 - `projects` — metas de aquisição (valor alvo, aportes, progresso).
 - `investments` — posições e aportes de investimentos.
 - `raw_messages` — SMS crus recebidos, com status (parseado / pendente / ignorado).
+- `sms_interpretations` — resultados append-only dos parsers, com parser, versão, confiança e payload extraído.
 
 ## Fases
 
@@ -66,10 +69,18 @@ Fase 1 — Núcleo financeiro (web)
   Contas, categorias, transações manuais, dashboard do mês (entradas, saídas, saldo).
   → verificar: cadastrar conta → lançar transações → dashboard reflete os números.
 
-Fase 2 — Captura por SMS (mobile)
-  App Android com dev client lê SMS, parseia os bancos do usuário, envia à API;
-  fila de confirmação na web para SMS não reconhecidos.
-  → verificar: uma compra real no cartão aparece como transação (ou pendência) sem toque manual.
+Fase 2A — Transporte por SMS (concluída)
+  App Android recebe SMS, filtra remetentes, preserva fila offline e envia o bruto à API;
+  painel mobile mostra saúde da captura e a fila web recebe a mensagem.
+  → verificado: Pix Itaú real capturado com app fechado, enviado e persistido como pendência.
+
+Fase 2B — Interpretação assistida
+  API executa parsers versionados no servidor e pré-preenche a fila sem confirmar sozinha.
+  → verificar: Pix Itaú recebido/enviado chega com tipo, valor e descrição corretos.
+
+Fase 2C — Cobertura e confiança operacional
+  Medir cobertura banco × evento, correções humanas e idade das filas local/web.
+  → verificar: falha de permissão, rede ou credencial fica visível e nenhuma lacuna é silenciosa.
 
 Fase 3 — Cartão de crédito
   Faturas por ciclo de fechamento, compras parceladas distribuídas nas faturas futuras.

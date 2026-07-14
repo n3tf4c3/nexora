@@ -14,7 +14,7 @@ Decisões-fundação (não reabrir sem motivo):
 
 ## Estado atual
 
-Fase 1 (núcleo financeiro web) concluída: contas, categorias, transações manuais e dashboard do mês, em produção. Próxima: Fase 2 — captura por SMS no Android (dev client + módulo nativo, parsers no core, fila de confirmação na web). Antes de escrever parsers, coletar amostras reais dos SMS dos bancos do usuário.
+Fase 1 (núcleo financeiro web) concluída. Fase 2A também concluída e validada em aparelho real: módulo nativo Android recebe SMS com o app fechado, filtra por allowlist, guarda fila SQLite, sincroniza por WorkManager e envia o bruto à API; a fila web recebe a pendência. Fase 2B em andamento: parsers canônicos executam no servidor após a persistência, com resultados versionados e fila pré-preenchida. Parsers novos continuam proibidos sem amostras reais sanitizadas em `docs/SMS-AMOSTRAS.md`.
 
 ## Comandos (raiz)
 
@@ -22,7 +22,7 @@ Fase 1 (núcleo financeiro web) concluída: contas, categorias, transações man
 - `npm run web:build` — build de produção do web
 - `npm run mobile` — Expo dev server
 - `npm run typecheck` / `npm run lint` / `npm test` — todos os workspaces
-- Banco (workspace web): `npm run db:generate|db:migrate|db:seed:admin --workspace apps/web`
+- Banco (workspace web): `npm run db:generate|db:migrate|db:reprocessar-sms|db:seed:admin --workspace apps/web`
 
 ## Stack e pegadinhas
 
@@ -32,7 +32,7 @@ Fase 1 (núcleo financeiro web) concluída: contas, categorias, transações man
 - **Env vars**: validadas em `apps/web/src/env.ts` (zod) — toda leitura de `process.env` passa por lá. `.env.example` versionado em `apps/web`.
 - **Dinheiro**: inteiros em centavos (BRL) — helpers em `packages/core/src/dinheiro.ts`. Nunca float.
 - **@nexora/core** é consumido como fonte TS (`transpilePackages` no Next; Metro resolve no Expo). Domínio puro: sem dependência de framework.
-- **Mobile**: Expo managed não lê SMS — a captura (Fase 2) exigirá dev client com módulo nativo.
+- **Mobile**: Expo Go não carrega o módulo local; captura e diagnóstico exigem o APK/dev client com o módulo nativo.
 
 ## Convenções
 
