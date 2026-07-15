@@ -12,6 +12,29 @@ import { capturaPermitida, ipDaRequisicao } from "@/server/rate-limit";
 // Teto folgado para um lote de 50 SMS de 2000 chars (JSON com escapes).
 const CORPO_MAX_BYTES = 256 * 1024;
 
+async function lerCorpoLimitado(req: Request): Promise<string | null> {
+  const leitor = req.body?.getReader();
+  if (!leitor) return null;
+
+  const decoder = new TextDecoder();
+  let tamanho = 0;
+  let corpo = "";
+
+  while (true) {
+    const { done, value } = await leitor.read();
+    if (done) break;
+
+    tamanho += value.byteLength;
+    if (tamanho > CORPO_MAX_BYTES) {
+      await leitor.cancel().catch(() => undefined);
+      return null;
+    }
+    corpo += decoder.decode(value, { stream: true });
+  }
+
+  return tamanho > 0 ? corpo + decoder.decode() : null;
+}
+
 // Comparação em tempo constante; hash iguala os tamanhos exigidos pelo timingSafeEqual.
 function tokenConfere(recebido: string, esperado: string): boolean {
   const a = createHash("sha256").update(recebido).digest();
@@ -62,8 +85,11 @@ export async function GET(req: Request) {
  * Idempotente: reenvio do mesmo lote não duplica (hash único por mensagem).
  */
 export async function POST(req: Request) {
-  const tamanho = Number(req.headers.get("content-length") ?? 0);
-  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > CORPO_MAX_BYTES) {
+  const tamanhoDeclarado = Number(req.headers.get("content-length"));
+  if (
+    (Number.isFinite(tamanhoDeclarado) && tamanhoDeclarado > CORPO_MAX_BYTES) ||
+    !req.body
+  ) {
     return Response.json({ erro: "Corpo ausente ou grande demais." }, { status: 413 });
   }
 
@@ -72,7 +98,14 @@ export async function POST(req: Request) {
 
   let corpo: unknown;
   try {
-    corpo = await req.json();
+    const corpoTexto = await lerCorpoLimitado(req);
+    if (corpoTexto === null) {
+      return Response.json(
+        { erro: "Corpo ausente ou grande demais." },
+        { status: 413 },
+      );
+    }
+    corpo = JSON.parse(corpoTexto);
   } catch {
     return Response.json({ erro: "JSON inválido." }, { status: 400 });
   }

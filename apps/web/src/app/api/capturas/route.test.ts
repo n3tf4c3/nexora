@@ -17,6 +17,28 @@ function requisicao(corpo: string, cabecalhos: Record<string, string> = {}): Req
   });
 }
 
+function requisicaoFragmentada(
+  partes: Uint8Array[],
+  cabecalhos: Record<string, string> = {},
+): Request {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const parte of partes) controller.enqueue(parte);
+      controller.close();
+    },
+  });
+  const init: RequestInit & { duplex: "half" } = {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...cabecalhos,
+    },
+    body: stream,
+    duplex: "half",
+  };
+  return new Request("http://localhost/api/capturas", init);
+}
+
 describe("POST /api/capturas", () => {
   it("recusa sem token e com token errado (401)", async () => {
     expect((await POST(requisicao("{}"))).status).toBe(401);
@@ -29,6 +51,33 @@ describe("POST /api/capturas", () => {
     const resposta = await POST(
       requisicao("{}", { "content-length": String(1024 * 1024) }),
     );
+    expect(resposta.status).toBe(413);
+  });
+
+  it("lê corpo fragmentado sem Content-Length", async () => {
+    const encoder = new TextEncoder();
+    const resposta = await POST(
+      requisicaoFragmentada(
+        [encoder.encode('{"mensagens":'), encoder.encode("[]}")],
+        { authorization: `Bearer ${TOKEN}` },
+      ),
+    );
+
+    expect(resposta.status).toBe(400);
+    expect(await resposta.json()).not.toEqual({ erro: "JSON inválido." });
+  });
+
+  it("recusa o tamanho real acima do limite mesmo com header menor (413)", async () => {
+    const resposta = await POST(
+      requisicaoFragmentada(
+        [new Uint8Array(200 * 1024), new Uint8Array(57 * 1024)],
+        {
+          authorization: `Bearer ${TOKEN}`,
+          "content-length": "2",
+        },
+      ),
+    );
+
     expect(resposta.status).toBe(413);
   });
 
