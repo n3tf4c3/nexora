@@ -45,6 +45,15 @@ export type StatusFatura = (typeof STATUS_FATURA)[number];
 export const FREQUENCIAS_RECORRENCIA = ["mensal", "anual", "semanal"] as const;
 export type FrequenciaRecorrencia = (typeof FREQUENCIAS_RECORRENCIA)[number];
 
+export const TIPOS_ATIVO_INVESTIMENTO = [
+  "renda_fixa",
+  "fundo",
+  "acao",
+  "fii",
+  "outro",
+] as const;
+export type TipoAtivoInvestimento = (typeof TIPOS_ATIVO_INVESTIMENTO)[number];
+
 const diaDoMes = z.coerce.number().int().min(1).max(31);
 
 const nomeSchema = (max: number) =>
@@ -195,3 +204,38 @@ export const recorrenciaInputSchema = z.object({
   ativa: z.boolean().default(true),
 });
 export type RecorrenciaInput = z.infer<typeof recorrenciaInputSchema>;
+
+export const metaInputSchema = z.object({
+  nome: nomeSchema(100),
+  descricao: z.string().trim().max(500).optional(),
+  valorAlvoCentavos: z
+    .number()
+    .int()
+    .positive()
+    .max(VALOR_CENTAVOS_MAX, "Valor alvo acima do máximo suportado."),
+  dataAlvo: z.iso.date("Data alvo inválida.").optional(),
+  icone: z.string().trim().max(30).default("alvo"),
+});
+export type MetaInput = z.infer<typeof metaInputSchema>;
+
+export const aporteMetaInputSchema = z.object({
+  metaId: z.uuid("Meta inválida."),
+  contaId: z.uuid("Conta de origem inválida."),
+  valorCentavos: z
+    .number()
+    .int()
+    .positive()
+    .max(VALOR_CENTAVOS_MAX, "Valor do aporte inválido."),
+  data: z.iso.date("Data do aporte inválida."),
+});
+export type AporteMetaInput = z.infer<typeof aporteMetaInputSchema>;
+
+export const investimentoInputSchema = z.object({
+  contaId: z.uuid("Conta de investimento inválida."),
+  nomeAtivo: nomeSchema(100),
+  tipoAtivo: z.enum(TIPOS_ATIVO_INVESTIMENTO).default("renda_fixa"),
+  valorInvestidoCentavos: z.number().int().nonnegative().default(0),
+  valorAtualCentavos: z.number().int().nonnegative().default(0),
+});
+export type InvestimentoInput = z.infer<typeof investimentoInputSchema>;
+

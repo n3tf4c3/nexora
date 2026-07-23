@@ -110,6 +110,26 @@ export function IconeProjecao(p: Props) {
   );
 }
 
+export function IconeMeta(p: Props) {
+  return (
+    <Icone {...p}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </Icone>
+  );
+}
+
+export function IconeInvestimento(p: Props) {
+  return (
+    <Icone {...p}>
+      <line x1="12" y1="20" x2="12" y2="10" />
+      <line x1="18" y1="20" x2="18" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="16" />
+    </Icone>
+  );
+}
+
 export function IconeMais(p: Props) {
   return (
     <Icone {...p}>

@@ -26,6 +26,7 @@ import {
   REMETENTE_SMS_MAX,
   STATUS_FATURA,
   STATUS_MENSAGEM_SMS,
+  TIPOS_ATIVO_INVESTIMENTO,
   TIPOS_CONTA,
   TIPOS_TRANSACAO,
   type EventoSmsReconhecido,
@@ -49,6 +50,7 @@ export const naturezaTransacao = pgEnum("natureza_transacao", NATUREZAS_TRANSACA
 export const estadoTransacao = pgEnum("estado_transacao", ESTADOS_TRANSACAO);
 export const statusFatura = pgEnum("status_fatura", STATUS_FATURA);
 export const frequenciaRecorrencia = pgEnum("frequencia_recorrencia", FREQUENCIAS_RECORRENCIA);
+export const tipoAtivoInvestimento = pgEnum("tipo_ativo_investimento", TIPOS_ATIVO_INVESTIMENTO);
 export const statusMensagemSms = pgEnum("status_mensagem_sms", STATUS_MENSAGEM_SMS);
 
 export const contas = pgTable(
@@ -282,5 +284,77 @@ export const interpretacoesSms = pgTable(
     check("interpretacoes_sms_parser_versao_chk", sql`${t.parserVersao} > 0`),
     check("interpretacoes_sms_confianca_chk", sql`${t.confianca} between 0 and 100`),
     index("interpretacoes_sms_mensagem_criado_idx").on(t.mensagemId, t.criadoEm),
+  ],
+);
+
+export const metas = pgTable(
+  "metas",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    nome: varchar("nome", { length: 100 }).notNull(),
+    descricao: text("descricao"),
+    valorAlvoCentavos: integer("valor_alvo_centavos").notNull(),
+    valorAtualCentavos: integer("valor_atual_centavos").notNull().default(0),
+    dataAlvo: date("data_alvo"),
+    icone: varchar("icone", { length: 30 }).notNull().default("alvo"),
+    concluida: boolean("concluida").notNull().default(false),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("metas_usuario_idx").on(t.usuarioId),
+    check("metas_valor_alvo_positivo_chk", sql`${t.valorAlvoCentavos} > 0`),
+    check("metas_valor_atual_nao_negativo_chk", sql`${t.valorAtualCentavos} >= 0`),
+  ],
+);
+
+export const aportesMetas = pgTable(
+  "aportes_metas",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    metaId: uuid("meta_id")
+      .notNull()
+      .references(() => metas.id, { onDelete: "cascade" }),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id),
+    valorCentavos: integer("valor_centavos").notNull(),
+    data: date("data").notNull(),
+    transacaoId: uuid("transacao_id").references(() => transacoes.id),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("aportes_metas_meta_idx").on(t.metaId),
+    index("aportes_metas_usuario_idx").on(t.usuarioId),
+    check("aportes_metas_valor_positivo_chk", sql`${t.valorCentavos} > 0`),
+  ],
+);
+
+export const investimentos = pgTable(
+  "investimentos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id),
+    nomeAtivo: varchar("nome_ativo", { length: 100 }).notNull(),
+    tipoAtivo: tipoAtivoInvestimento("tipo_ativo").notNull().default("renda_fixa"),
+    valorInvestidoCentavos: integer("valor_investido_centavos").notNull().default(0),
+    valorAtualCentavos: integer("valor_atual_centavos").notNull().default(0),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("investimentos_usuario_idx").on(t.usuarioId),
+    index("investimentos_conta_idx").on(t.contaId),
+    check("investimentos_valor_investido_nao_negativo_chk", sql`${t.valorInvestidoCentavos} >= 0`),
+    check("investimentos_valor_atual_nao_negativo_chk", sql`${t.valorAtualCentavos} >= 0`),
   ],
 );
