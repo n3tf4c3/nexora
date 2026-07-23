@@ -5,16 +5,22 @@ import Form from "next/form";
 import { usePathname } from "next/navigation";
 import {
   IconeBusca,
+  IconeCartao,
   IconeContas,
   IconeDashboard,
   IconeFila,
+  IconeProjecao,
   IconePulso,
+  IconeRecorrencia,
   IconeTransacoes,
 } from "./icones";
 import { LogoNexora } from "./logo";
 
 const itens = [
   { href: "/", rotulo: "Dashboard", rotuloMobile: "Início", icone: IconeDashboard },
+  { href: "/projecao", rotulo: "Projeção de caixa", rotuloMobile: "Projeção", icone: IconeProjecao },
+  { href: "/recorrencias", rotulo: "Recorrências", rotuloMobile: "Recorrências", icone: IconeRecorrencia },
+  { href: "/faturas", rotulo: "Faturas de cartão", rotuloMobile: "Faturas", icone: IconeCartao },
   { href: "/fila", rotulo: "Fila de confirmação", rotuloMobile: "Fila", icone: IconeFila },
   { href: "/saude", rotulo: "Saúde da automação", rotuloMobile: "Saúde", icone: IconePulso },
   { href: "/transacoes", rotulo: "Transações", rotuloMobile: "Transações", icone: IconeTransacoes },

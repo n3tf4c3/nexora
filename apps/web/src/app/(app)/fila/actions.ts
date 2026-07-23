@@ -5,13 +5,15 @@ import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
 import { db } from "@/db";
-import { categorias, contas, mensagensSms } from "@/db/schema";
+import { categorias, contas, faturas, mensagensSms } from "@/db/schema";
+import { obterOuCriarFaturaParaTransacao } from "@/server/faturas";
 import { primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";
 
 function revalidarFila() {
   revalidatePath("/fila");
   revalidatePath("/transacoes");
+  revalidatePath("/faturas");
   revalidatePath("/");
 }
 
@@ -56,10 +58,16 @@ export async function confirmarSms(
     if (!categoria) return { erro: "Categoria inválida." };
   }
 
+  const { data } = parse;
+  const faturaId = await obterOuCriarFaturaParaTransacao({
+    usuarioId,
+    contaId: data.contaId,
+    dataCompra: data.data,
+  });
+
   // Sem transação interativa (neon-http): um único statement CTE cria a
   // transação e marca a mensagem atomicamente. O FOR UPDATE serializa
   // revisões concorrentes; quem perde a corrida não afeta nenhuma linha.
-  const { data } = parse;
   const resultado = await db.execute(sql`
     with pendente as (
       select id from mensagens_sms
@@ -67,9 +75,9 @@ export async function confirmarSms(
       for update
     ),
     nova as (
-      insert into transacoes (id, usuario_id, conta_id, categoria_id, tipo, valor_centavos, descricao, data)
+      insert into transacoes (id, usuario_id, conta_id, categoria_id, tipo, natureza, estado, valor_centavos, descricao, data, fatura_id)
       select ${randomUUID()}, ${usuarioId}, ${data.contaId}, ${data.categoriaId ?? null},
-             ${data.tipo}, ${data.valorCentavos}, ${data.descricao ?? null}, ${data.data}
+             ${data.tipo}, 'competencia', 'efetivada', ${data.valorCentavos}, ${data.descricao ?? null}, ${data.data}, ${faturaId ?? null}
       from pendente
       returning id
     )

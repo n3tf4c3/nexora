@@ -17,10 +17,14 @@ import {
 import {
   CORPO_SMS_MAX,
   DESCRICAO_TRANSACAO_MAX,
+  ESTADOS_TRANSACAO,
+  FREQUENCIAS_RECORRENCIA,
   ICONES_CONTA,
+  NATUREZAS_TRANSACAO,
   NOME_CATEGORIA_MAX,
   NOME_CONTA_MAX,
   REMETENTE_SMS_MAX,
+  STATUS_FATURA,
   STATUS_MENSAGEM_SMS,
   TIPOS_CONTA,
   TIPOS_TRANSACAO,
@@ -41,6 +45,10 @@ export const usuarios = pgTable("usuarios", {
 export const tipoConta = pgEnum("tipo_conta", TIPOS_CONTA);
 export const tipoIconeConta = pgEnum("tipo_icone_conta", ICONES_CONTA);
 export const tipoTransacao = pgEnum("tipo_transacao", TIPOS_TRANSACAO);
+export const naturezaTransacao = pgEnum("natureza_transacao", NATUREZAS_TRANSACAO);
+export const estadoTransacao = pgEnum("estado_transacao", ESTADOS_TRANSACAO);
+export const statusFatura = pgEnum("status_fatura", STATUS_FATURA);
+export const frequenciaRecorrencia = pgEnum("frequencia_recorrencia", FREQUENCIAS_RECORRENCIA);
 export const statusMensagemSms = pgEnum("status_mensagem_sms", STATUS_MENSAGEM_SMS);
 
 export const contas = pgTable(
@@ -86,6 +94,84 @@ export const categorias = pgTable(
   (t) => [uniqueIndex("categorias_usuario_nome_unq").on(t.usuarioId, t.nome)],
 );
 
+export const faturas = pgTable(
+  "faturas",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id),
+    mesReferencia: varchar("mes_referencia", { length: 7 }).notNull(),
+    dataFechamento: date("data_fechamento").notNull(),
+    dataVencimento: date("data_vencimento").notNull(),
+    status: statusFatura("status").notNull().default("aberta"),
+    valorTotalInformadoCentavos: integer("valor_total_informado_centavos"),
+    valorMinimoInformadoCentavos: integer("valor_minimo_informado_centavos"),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("faturas_usuario_conta_mes_unq").on(t.usuarioId, t.contaId, t.mesReferencia),
+    index("faturas_conta_idx").on(t.contaId),
+    index("faturas_usuario_mes_idx").on(t.usuarioId, t.mesReferencia),
+  ],
+);
+
+export const parcelamentos = pgTable(
+  "parcelamentos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id),
+    categoriaId: uuid("categoria_id").references(() => categorias.id),
+    descricao: varchar("descricao", { length: DESCRICAO_TRANSACAO_MAX }).notNull(),
+    valorTotalCentavos: integer("valor_total_centavos").notNull(),
+    numeroParcelas: integer("numero_parcelas").notNull(),
+    dataPrimeiraParcela: date("data_primeira_parcela").notNull(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("parcelamentos_usuario_idx").on(t.usuarioId),
+    check("parcelamentos_valor_positivo_chk", sql`${t.valorTotalCentavos} > 0`),
+    check("parcelamentos_numero_parcelas_chk", sql`${t.numeroParcelas} >= 2`),
+  ],
+);
+
+export const recorrencias = pgTable(
+  "recorrencias",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usuarioId: uuid("usuario_id")
+      .notNull()
+      .references(() => usuarios.id),
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id),
+    categoriaId: uuid("categoria_id").references(() => categorias.id),
+    tipo: tipoTransacao("tipo").notNull(),
+    natureza: naturezaTransacao("natureza").notNull().default("competencia"),
+    descricao: varchar("descricao", { length: DESCRICAO_TRANSACAO_MAX }).notNull(),
+    valorCentavos: integer("valor_centavos").notNull(),
+    frequencia: frequenciaRecorrencia("frequencia").notNull().default("mensal"),
+    diaVencimento: integer("dia_vencimento").notNull(),
+    dataInicio: date("data_inicio").notNull(),
+    dataFim: date("data_fim"),
+    ativa: boolean("ativa").notNull().default(true),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("recorrencias_usuario_idx").on(t.usuarioId),
+    check("recorrencias_valor_positivo_chk", sql`${t.valorCentavos} > 0`),
+    check("recorrencias_dia_vencimento_chk", sql`${t.diaVencimento} between 1 and 31`),
+  ],
+);
+
 export const transacoes = pgTable(
   "transacoes",
   {
@@ -98,9 +184,17 @@ export const transacoes = pgTable(
       .references(() => contas.id),
     categoriaId: uuid("categoria_id").references(() => categorias.id),
     tipo: tipoTransacao("tipo").notNull(),
+    natureza: naturezaTransacao("natureza").notNull().default("competencia"),
+    estado: estadoTransacao("estado").notNull().default("efetivada"),
     valorCentavos: integer("valor_centavos").notNull(),
     descricao: varchar("descricao", { length: DESCRICAO_TRANSACAO_MAX }),
     data: date("data").notNull(),
+    contaDestinoId: uuid("conta_destino_id").references(() => contas.id),
+    faturaId: uuid("fatura_id").references(() => faturas.id),
+    parcelamentoId: uuid("parcelamento_id").references(() => parcelamentos.id),
+    recorrenciaId: uuid("recorrencia_id").references(() => recorrencias.id),
+    numeroParcela: integer("numero_parcela"),
+    totalParcelas: integer("total_parcelas"),
     criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -109,6 +203,9 @@ export const transacoes = pgTable(
     index("transacoes_usuario_data_idx").on(t.usuarioId, t.data, t.criadoEm),
     index("transacoes_conta_idx").on(t.contaId),
     index("transacoes_categoria_idx").on(t.categoriaId),
+    index("transacoes_fatura_idx").on(t.faturaId),
+    index("transacoes_parcelamento_idx").on(t.parcelamentoId),
+    index("transacoes_recorrencia_idx").on(t.recorrenciaId),
   ],
 );
 

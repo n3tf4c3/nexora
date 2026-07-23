@@ -69,8 +69,8 @@ export default async function Dashboard({
   const totaisDoMes = (dataInicial: string, dataFinal: string) =>
     db
       .select({
-        entradas: sql<string>`coalesce(sum(${transacoes.valorCentavos}) filter (where ${transacoes.tipo} = 'entrada'), 0)`,
-        saidas: sql<string>`coalesce(sum(${transacoes.valorCentavos}) filter (where ${transacoes.tipo} = 'saida'), 0)`,
+        entradas: sql<string>`coalesce(sum(${transacoes.valorCentavos}) filter (where ${transacoes.tipo} = 'entrada' and ${transacoes.natureza} = 'competencia' and ${transacoes.estado} = 'efetivada'), 0)`,
+        saidas: sql<string>`coalesce(sum(${transacoes.valorCentavos}) filter (where ${transacoes.tipo} = 'saida' and ${transacoes.natureza} = 'competencia' and ${transacoes.estado} = 'efetivada'), 0)`,
       })
       .from(transacoes)
       .where(

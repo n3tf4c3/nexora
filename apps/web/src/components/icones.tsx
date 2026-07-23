@@ -82,6 +82,34 @@ export function IconeContas(p: Props) {
   );
 }
 
+export function IconeCartao(p: Props) {
+  return (
+    <Icone {...p}>
+      <rect width="20" height="14" x="2" y="5" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
+    </Icone>
+  );
+}
+
+export function IconeRecorrencia(p: Props) {
+  return (
+    <Icone {...p}>
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+      <path d="M16 16h5v5" />
+    </Icone>
+  );
+}
+
+export function IconeProjecao(p: Props) {
+  return (
+    <Icone {...p}>
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </Icone>
+  );
+}
+
 export function IconeMais(p: Props) {
   return (
     <Icone {...p}>

@@ -27,6 +27,24 @@ export const CATEGORIAS_PADRAO = [
 export const TIPOS_TRANSACAO = ["entrada", "saida"] as const;
 export type TipoTransacao = (typeof TIPOS_TRANSACAO)[number];
 
+export const NATUREZAS_TRANSACAO = [
+  "competencia",
+  "liquidacao_passivo",
+  "transferencia",
+  "aporte_investimento",
+  "ajuste_saldo",
+] as const;
+export type NaturezaTransacao = (typeof NATUREZAS_TRANSACAO)[number];
+
+export const ESTADOS_TRANSACAO = ["efetivada", "prevista", "cancelada"] as const;
+export type EstadoTransacao = (typeof ESTADOS_TRANSACAO)[number];
+
+export const STATUS_FATURA = ["aberta", "fechada", "paga", "reconciliada"] as const;
+export type StatusFatura = (typeof STATUS_FATURA)[number];
+
+export const FREQUENCIAS_RECORRENCIA = ["mensal", "anual", "semanal"] as const;
+export type FrequenciaRecorrencia = (typeof FREQUENCIAS_RECORRENCIA)[number];
+
 const diaDoMes = z.coerce.number().int().min(1).max(31);
 
 const nomeSchema = (max: number) =>
@@ -90,22 +108,90 @@ export const capturaLoteSchema = z.object({
 });
 export type CapturaLote = z.infer<typeof capturaLoteSchema>;
 
-export const transacaoInputSchema = z.object({
+export const transacaoInputSchema = z
+  .object({
+    tipo: z.enum(TIPOS_TRANSACAO),
+    natureza: z.enum(NATUREZAS_TRANSACAO).default("competencia"),
+    estado: z.enum(ESTADOS_TRANSACAO).default("efetivada"),
+    valorCentavos: z
+      .number()
+      .int()
+      .positive()
+      .max(VALOR_CENTAVOS_MAX, "Valor acima do máximo suportado."),
+    // Descrição só de espaços vira ausência, não string vazia persistida.
+    descricao: z
+      .string()
+      .trim()
+      .max(DESCRICAO_TRANSACAO_MAX, `Descrição muito longa (máx. ${DESCRICAO_TRANSACAO_MAX}).`)
+      .transform((s) => s || undefined)
+      .optional(),
+    data: z.iso.date("Data inválida."),
+    contaId: z.uuid("Conta inválida."),
+    categoriaId: z.uuid("Categoria inválida.").optional(),
+    contaDestinoId: z.uuid("Conta de destino inválida.").optional(),
+    faturaId: z.uuid("Fatura inválida.").optional(),
+    parcelamentoId: z.uuid("Parcelamento inválido.").optional(),
+    numeroParcela: z.number().int().min(1).optional(),
+    totalParcelas: z.number().int().min(1).optional(),
+  })
+  .refine(
+    (t) => t.natureza !== "transferencia" || t.contaDestinoId !== undefined,
+    { message: "Transferências exigem conta de destino." },
+  )
+  .refine(
+    (t) => t.contaDestinoId === undefined || t.contaDestinoId !== t.contaId,
+    { message: "A conta de destino deve ser diferente da conta de origem." },
+  );
+export type TransacaoInput = z.infer<typeof transacaoInputSchema>;
+
+export const parcelamentoInputSchema = z.object({
+  contaId: z.uuid("Conta inválida."),
+  categoriaId: z.uuid("Categoria inválida.").optional(),
+  descricao: z
+    .string()
+    .trim()
+    .min(1, "Informe a descrição do parcelamento.")
+    .max(DESCRICAO_TRANSACAO_MAX, `Descrição muito longa (máx. ${DESCRICAO_TRANSACAO_MAX}).`),
+  valorTotalCentavos: z
+    .number()
+    .int()
+    .positive()
+    .max(VALOR_CENTAVOS_MAX, "Valor acima do máximo suportado."),
+  numeroParcelas: z.number().int().min(2).max(72, "Número de parcelas inválido (máx. 72)."),
+  dataPrimeiraParcela: z.iso.date("Data da primeira parcela inválida."),
+});
+export type ParcelamentoInput = z.infer<typeof parcelamentoInputSchema>;
+
+export const faturaInputSchema = z.object({
+  contaId: z.uuid("Conta inválida."),
+  mesReferencia: z.string().regex(/^((?:19|20|21)\d{2})-(0[1-9]|1[0-2])$/, "Mês de referência inválido."),
+  dataFechamento: z.iso.date("Data de fechamento inválida."),
+  dataVencimento: z.iso.date("Data de vencimento inválida."),
+  status: z.enum(STATUS_FATURA).default("aberta"),
+  valorTotalInformadoCentavos: z.number().int().nonnegative().optional(),
+  valorMinimoInformadoCentavos: z.number().int().nonnegative().optional(),
+});
+export type FaturaInput = z.infer<typeof faturaInputSchema>;
+
+export const recorrenciaInputSchema = z.object({
+  contaId: z.uuid("Conta inválida."),
+  categoriaId: z.uuid("Categoria inválida.").optional(),
   tipo: z.enum(TIPOS_TRANSACAO),
+  natureza: z.enum(NATUREZAS_TRANSACAO).default("competencia"),
+  descricao: z
+    .string()
+    .trim()
+    .min(1, "Informe a descrição da recorrência.")
+    .max(DESCRICAO_TRANSACAO_MAX, `Descrição muito longa (máx. ${DESCRICAO_TRANSACAO_MAX}).`),
   valorCentavos: z
     .number()
     .int()
     .positive()
     .max(VALOR_CENTAVOS_MAX, "Valor acima do máximo suportado."),
-  // Descrição só de espaços vira ausência, não string vazia persistida.
-  descricao: z
-    .string()
-    .trim()
-    .max(DESCRICAO_TRANSACAO_MAX, `Descrição muito longa (máx. ${DESCRICAO_TRANSACAO_MAX}).`)
-    .transform((s) => s || undefined)
-    .optional(),
-  data: z.iso.date("Data inválida."),
-  contaId: z.uuid("Conta inválida."),
-  categoriaId: z.uuid("Categoria inválida.").optional(),
+  frequencia: z.enum(FREQUENCIAS_RECORRENCIA).default("mensal"),
+  diaVencimento: z.number().int().min(1).max(31, "Dia de vencimento inválido."),
+  dataInicio: z.iso.date("Data de início inválida."),
+  dataFim: z.iso.date("Data de fim inválida.").optional(),
+  ativa: z.boolean().default(true),
 });
-export type TransacaoInput = z.infer<typeof transacaoInputSchema>;
+export type RecorrenciaInput = z.infer<typeof recorrenciaInputSchema>;

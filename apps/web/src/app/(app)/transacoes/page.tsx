@@ -58,7 +58,7 @@ export default async function TransacoesPage({
 
   const [listaContas, listaCategorias, lista, [{ total }]] = await Promise.all([
     db
-      .select({ id: contas.id, nome: contas.nome })
+      .select({ id: contas.id, nome: contas.nome, tipo: contas.tipo })
       .from(contas)
       .where(eq(contas.usuarioId, usuarioId))
       .orderBy(asc(contas.nome)),
@@ -72,12 +72,15 @@ export default async function TransacoesPage({
         id: transacoes.id,
         data: transacoes.data,
         tipo: transacoes.tipo,
+        natureza: transacoes.natureza,
         valorCentavos: transacoes.valorCentavos,
         descricao: transacoes.descricao,
         conta: contas.nome,
         categoria: categorias.nome,
         contaId: transacoes.contaId,
         categoriaId: transacoes.categoriaId,
+        numeroParcela: transacoes.numeroParcela,
+        totalParcelas: transacoes.totalParcelas,
       })
       .from(transacoes)
       .innerJoin(contas, eq(transacoes.contaId, contas.id))

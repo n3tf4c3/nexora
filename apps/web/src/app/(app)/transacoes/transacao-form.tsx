@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useId, useMemo, useRef } from "react";
+import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { DESCRICAO_TRANSACAO_MAX } from "@nexora/core";
 import { atualizarTransacao, criarTransacao } from "./actions";
 import { botaoPrimario, campo } from "@/components/estilos";
 import { IconeMais } from "@/components/icones";
 
+type OpcaoConta = { id: string; nome: string; tipo?: string };
 type Opcao = { id: string; nome: string };
 
 export type TransacaoEditavel = {
   id: string;
   tipo: "entrada" | "saida";
+  natureza?: string;
   valorCentavos: number;
   data: string;
   contaId: string;
@@ -34,7 +36,7 @@ export function TransacaoForm({
   hoje,
   transacao,
 }: {
-  contas: Opcao[];
+  contas: OpcaoConta[];
   categorias: Opcao[];
   hoje: string;
   transacao?: TransacaoEditavel;
@@ -47,8 +49,19 @@ export function TransacaoForm({
   const formRef = useRef<HTMLFormElement>(null);
   const id = useId();
 
+  const [contaSelecionadaId, setContaSelecionadaId] = useState(transacao?.contaId ?? "");
+  const [natureza, setNatureza] = useState(transacao?.natureza ?? "competencia");
+
+  const contaSelecionada = useMemo(
+    () => contas.find((c) => c.id === contaSelecionadaId),
+    [contas, contaSelecionadaId],
+  );
+
   useEffect(() => {
-    if (estado.ok && !transacao) formRef.current?.reset();
+    if (estado.ok && !transacao) {
+      formRef.current?.reset();
+      setNatureza("competencia");
+    }
   }, [estado, transacao]);
 
   return (
@@ -77,8 +90,26 @@ export function TransacaoForm({
             </label>
           </div>
         </fieldset>
+
         <div className="field">
-          <label htmlFor={`${id}-valor`}>Valor</label>
+          <label htmlFor={`${id}-natureza`}>Natureza Financeira</label>
+          <select
+            id={`${id}-natureza`}
+            name="natureza"
+            value={natureza}
+            onChange={(e) => setNatureza(e.target.value)}
+            className={campo}
+          >
+            <option value="competencia">Competência (Consumo / Despesa)</option>
+            <option value="liquidacao_passivo">Liquidação de Passivo (Pag. Fatura)</option>
+            <option value="transferencia">Transferência Neutra entre Contas</option>
+            <option value="aporte_investimento">Aporte de Investimento</option>
+            <option value="ajuste_saldo">Ajuste de Saldo</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label htmlFor={`${id}-valor`}>Valor Total (R$)</label>
           <input
             id={`${id}-valor`}
             name="valor"
@@ -90,6 +121,7 @@ export function TransacaoForm({
             className={campo}
           />
         </div>
+
         <div className="field">
           <label htmlFor={`${id}-data`}>Data</label>
           <input
@@ -101,13 +133,15 @@ export function TransacaoForm({
             className={campo}
           />
         </div>
+
         <div className="field">
           <label htmlFor={`${id}-conta`}>Conta</label>
           <select
             id={`${id}-conta`}
             name="contaId"
             required
-            defaultValue={transacao?.contaId ?? ""}
+            value={contaSelecionadaId}
+            onChange={(e) => setContaSelecionadaId(e.target.value)}
             className={campo}
           >
             <option value="" disabled>
@@ -120,6 +154,25 @@ export function TransacaoForm({
             ))}
           </select>
         </div>
+
+        {natureza === "transferencia" && (
+          <div className="field">
+            <label htmlFor={`${id}-contaDestino`}>Conta de Destino</label>
+            <select id={`${id}-contaDestino`} name="contaDestinoId" required className={campo}>
+              <option value="" disabled>
+                Selecione a conta destino...
+              </option>
+              {contas
+                .filter((c) => c.id !== contaSelecionadaId)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
+
         <div className="field">
           <label htmlFor={`${id}-categoria`}>Categoria (opcional)</label>
           <select
@@ -136,23 +189,40 @@ export function TransacaoForm({
             ))}
           </select>
         </div>
+
+        {!transacao && (
+          <div className="field">
+            <label htmlFor={`${id}-parcelas`}>Parcelamento</label>
+            <select id={`${id}-parcelas`} name="numeroParcelas" defaultValue="1" className={campo}>
+              <option value="1">À vista (1x)</option>
+              {Array.from({ length: 71 }, (_, i) => i + 2).map((n) => (
+                <option key={n} value={n}>
+                  Parcelado em {n}x
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="field lg:col-span-3">
           <label htmlFor={`${id}-descricao`}>Descrição</label>
           <input
             id={`${id}-descricao`}
             name="descricao"
-            placeholder="Ex.: Supermercado, aluguel, salário..."
+            placeholder="Ex.: Supermercado, aluguel, compra Amazon..."
             maxLength={DESCRICAO_TRANSACAO_MAX}
             defaultValue={transacao?.descricao ?? undefined}
             className={campo}
           />
         </div>
       </div>
+
       {estado.erro && (
         <p role="alert" className="mt-3 mb-0 text-sm text-(--color-error)">
           {estado.erro}
         </p>
       )}
+
       <div className="mt-3 flex items-center gap-4">
         <button type="submit" disabled={pendente} className={botaoPrimario}>
           {!transacao && <IconeMais tamanho={15} traco={2.2} />}
