@@ -30,7 +30,7 @@ function BadgePendencias({ total }: { total: number }) {
   if (total === 0) return null;
   return (
     <span
-      className="flex min-w-5 items-center justify-center rounded-full bg-(--color-expense) px-1.5 py-0.5 text-[10px] font-bold text-white"
+      className="flex min-w-5 items-center justify-center rounded-full bg-rose-500/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm shadow-rose-500/50"
       aria-label={`${total} pendência${total === 1 ? "" : "s"}`}
     >
       {total > 99 ? "99+" : total}
@@ -50,22 +50,31 @@ export function Sidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col overflow-y-auto border-r border-(--color-divider) bg-(--color-surface) p-4 md:flex">
-      <div className="mb-5 flex items-center gap-3">
-        <LogoNexora caixa={40} raio={12} icone={20} />
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-[#090d16] p-4 text-slate-100 md:flex">
+      {/* Brand Header */}
+      <div className="mb-6 flex items-center gap-3 border-b border-slate-800/80 pb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/40 glow-indigo">
+          <LogoNexora caixa={28} raio={6} icone={16} />
+        </div>
         <div>
-          <div className="fonte-marca text-[19px]">Nexora</div>
-          <div className="text-[12px] text-(--color-neutral-500)">Financeiro pessoal</div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xl font-bold tracking-tight text-white font-heading">NEXORA</span>
+            <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-400 border border-indigo-500/30">
+              PRO
+            </span>
+          </div>
+          <div className="text-[11px] font-medium text-slate-400">Gestão Financeira</div>
         </div>
       </div>
 
+      {/* Form de Busca */}
       <Form action="/transacoes" className="relative mb-6">
         <IconeBusca
           tamanho={15}
-          className="pointer-events-none absolute top-1/2 left-[10px] -translate-y-1/2 text-(--color-neutral-400)"
+          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
         />
         <input
-          className="input pl-8 text-[13px]"
+          className="w-full rounded-xl border border-slate-800 bg-slate-900/80 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 transition-all focus:border-indigo-500 focus:bg-slate-900 focus:outline-none"
           type="text"
           name="q"
           placeholder="Buscar transações..."
@@ -73,48 +82,67 @@ export function Sidebar({
         />
       </Form>
 
-      <div className="mb-6">
-        <div className="mb-2 text-[11px] font-bold tracking-[0.06em] text-(--color-neutral-500) uppercase">
-          Geral
+      {/* Menu Principal */}
+      <div className="mb-4">
+        <div className="mb-2 px-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+          Visão Geral
         </div>
         <Link
           href="/"
           aria-current={estaAtivo(pathname, "/") ? "page" : undefined}
-          className={`link-nav${estaAtivo(pathname, "/") ? " ativo" : ""}`}
+          className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
+            estaAtivo(pathname, "/")
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/40 font-semibold"
+              : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
+          }`}
         >
-          <span className="flex items-center gap-[10px]">
+          <span className="flex items-center gap-3">
             <IconeDashboard />
             Dashboard
           </span>
         </Link>
       </div>
 
-      <div className="mb-6">
-        <div className="mb-2 text-[11px] font-bold tracking-[0.06em] text-(--color-neutral-500) uppercase">
-          Finanças
+      <div className="mb-6 flex-1">
+        <div className="mb-2 px-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+          Módulos
         </div>
-        {itens
-          .filter((i) => i.href !== "/")
-          .map((i) => (
-            <Link
-              key={i.href}
-              href={i.href}
-              aria-current={estaAtivo(pathname, i.href) ? "page" : undefined}
-              className={`link-nav${estaAtivo(pathname, i.href) ? " ativo" : ""}`}
-            >
-              <span className="flex items-center gap-[10px]">
-                <i.icone />
-                {i.rotulo}
-              </span>
-              {i.href === "/fila" && <BadgePendencias total={pendencias} />}
-            </Link>
-          ))}
+        <div className="space-y-1">
+          {itens
+            .filter((i) => i.href !== "/")
+            .map((i) => {
+              const ativo = estaAtivo(pathname, i.href);
+              return (
+                <Link
+                  key={i.href}
+                  href={i.href}
+                  aria-current={ativo ? "page" : undefined}
+                  className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
+                    ativo
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/40 font-semibold"
+                      : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <i.icone />
+                    {i.rotulo}
+                  </span>
+                  {i.href === "/fila" && <BadgePendencias total={pendencias} />}
+                </Link>
+              );
+            })}
+        </div>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-(--color-divider) pt-3 text-[12px] text-(--color-neutral-500)">
-        <span>{hoje}</span>
+      {/* Footer do Usuário */}
+      <div className="mt-auto border-t border-slate-800/80 pt-3">
+        <div className="mb-2.5 flex items-center justify-between px-2 text-[11px] font-medium text-slate-400">
+          <span>{hoje}</span>
+        </div>
         <form action={sair}>
-          <button className="min-h-10 cursor-pointer px-2 hover:text-(--color-text)">Sair</button>
+          <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs font-medium text-slate-300 transition-all hover:border-rose-900/40 hover:bg-rose-950/30 hover:text-rose-400">
+            Sair da conta
+          </button>
         </form>
       </div>
     </aside>
@@ -131,17 +159,21 @@ export function NavMobile({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-10 w-full border-b border-(--color-divider) bg-(--color-surface) px-3 pt-3 shadow-(--shadow-sm) md:hidden">
-      <div className="flex items-center justify-between px-1 pb-2">
-        <div className="flex items-center gap-2">
-          <LogoNexora caixa={28} raio={8} icone={15} />
-          <span className="fonte-marca text-[18px]">Nexora</span>
+    <header className="sticky top-0 z-20 w-full border-b border-slate-800 bg-[#090d16]/90 backdrop-blur-xl px-4 pt-3 shadow-md md:hidden">
+      <div className="flex items-center justify-between pb-2">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-600/30">
+            <LogoNexora caixa={22} raio={5} icone={13} />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-white font-heading">Nexora</span>
         </div>
         <form action={sair}>
-          <button className="min-h-11 px-2 text-[14px] text-(--color-neutral-600)">Sair</button>
+          <button className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1 text-xs font-medium text-slate-300 hover:text-white">
+            Sair
+          </button>
         </form>
       </div>
-      <nav aria-label="Navegação principal" className="flex w-full gap-1 overflow-x-auto pb-2">
+      <nav aria-label="Navegação principal" className="flex w-full gap-1.5 overflow-x-auto pb-2 scrollbar-none">
         {itens.map((i) => {
           const ativo = estaAtivo(pathname, i.href);
           return (
@@ -149,10 +181,10 @@ export function NavMobile({
               key={i.href}
               href={i.href}
               aria-current={ativo ? "page" : undefined}
-              className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[13px] ${
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                 ativo
-                  ? "bg-(--color-accent-100) font-bold text-(--color-accent-700)"
-                  : "text-(--color-neutral-600)"
+                  ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/40 font-semibold"
+                  : "bg-slate-900/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
               }`}
             >
               {i.rotuloMobile}

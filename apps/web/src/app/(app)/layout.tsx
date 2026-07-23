@@ -32,14 +32,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   });
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#090d16] text-slate-100 font-sans selection:bg-indigo-500/30">
       <a href="#conteudo-principal" className="skip-link">
         Pular para o conteúdo
       </a>
       <Sidebar hoje={hoje} pendencias={pendencias} sair={sair} />
       <div className="flex min-w-0 flex-1 flex-col">
         <NavMobile pendencias={pendencias} sair={sair} />
-        <main id="conteudo-principal" className="min-w-0 flex-1">
+        <main id="conteudo-principal" className="min-w-0 flex-1 bg-[#090d16]">
           {children}
         </main>
       </div>

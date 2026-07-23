@@ -25,19 +25,21 @@ export function DashboardDonut({ gastos }: { gastos: GastoPorCategoria[] }) {
   });
 
   return (
-    <section className="card min-w-0 gap-0 p-4 sm:p-5" aria-labelledby="gastos-categoria-titulo">
-      <span className="card-kicker">Composição das saídas</span>
-      <h2 id="gastos-categoria-titulo" className="card-title mt-1">
-        Gastos por categoria
-      </h2>
+    <section className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-lg backdrop-blur-xl flex min-w-0 flex-col justify-between" aria-labelledby="gastos-categoria-titulo">
+      <div>
+        <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Composição das saídas</span>
+        <h2 id="gastos-categoria-titulo" className="mt-0.5 text-lg font-bold tracking-tight text-white font-heading">
+          Gastos por categoria
+        </h2>
+      </div>
 
       {gastos.length === 0 ? (
-        <div className="estado-vazio mt-5 px-3 py-8">
+        <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center text-slate-400 bg-slate-950/40 my-auto">
           <p className="m-0 text-sm">Nenhum gasto no período.</p>
         </div>
       ) : (
         <>
-          <div className="relative mx-auto mt-5 h-[172px] w-[172px]">
+          <div className="relative mx-auto mt-4 h-[172px] w-[172px]">
             <svg
               viewBox="0 0 120 120"
               className="h-full w-full -rotate-90"
@@ -49,7 +51,7 @@ export function DashboardDonut({ gastos }: { gastos: GastoPorCategoria[] }) {
                 cy="60"
                 r="45"
                 fill="none"
-                stroke="var(--color-neutral-200)"
+                stroke="#1e293b"
                 strokeWidth="13"
               />
               {segmentos.map(({ gasto, fracao, tamanho, deslocamento }) => {
@@ -74,29 +76,29 @@ export function DashboardDonut({ gastos }: { gastos: GastoPorCategoria[] }) {
                 );
               })}
             </svg>
-            <div className="pointer-events-none absolute inset-[28px] flex flex-col items-center justify-center rounded-full bg-(--color-surface) text-center">
-              <span className="text-[10px] font-semibold tracking-[0.06em] text-(--color-neutral-500) uppercase">
+            <div className="pointer-events-none absolute inset-[28px] flex flex-col items-center justify-center rounded-full bg-slate-950 text-center border border-slate-800">
+              <span className="text-[9px] font-bold tracking-wider text-slate-400 uppercase">
                 Total gasto
               </span>
-              <strong className="mt-0.5 max-w-[100px] text-[14px] leading-tight">
+              <strong className="mt-0.5 max-w-[100px] text-xs font-bold leading-tight text-white font-heading">
                 {formatarCentavos(total)}
               </strong>
             </div>
           </div>
 
-          <ul className="mt-5 mb-0 list-none space-y-3 p-0">
+          <ul className="mt-4 mb-0 list-none space-y-2.5 p-0">
             {gastos.map((gasto) => {
               const percentual = (gasto.valorCentavos / total) * 100;
               return (
-                <li key={gasto.chave} className="flex min-w-0 items-center gap-2.5">
-                  <IconeCategoria nome={gasto.nome} tamanho={30} />
+                <li key={gasto.chave} className="flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-800/40 bg-slate-950/40 px-3 py-2">
+                  <IconeCategoria nome={gasto.nome} tamanho={24} />
                   <div className="min-w-0 flex-1">
-                    <span className="block truncate text-[12px] font-semibold">{gasto.nome}</span>
-                    <span className="block text-[11px] text-(--color-neutral-500)">
+                    <span className="block truncate text-xs font-semibold text-slate-200">{gasto.nome}</span>
+                    <span className="block text-[10px] text-slate-400">
                       {percentuais.format(percentual)}% do total
                     </span>
                   </div>
-                  <strong className="text-[12px] whitespace-nowrap">
+                  <strong className="text-xs font-bold text-white whitespace-nowrap">
                     {formatarCentavos(gasto.valorCentavos)}
                   </strong>
                 </li>

@@ -129,20 +129,20 @@ export function DashboardGrafico({
       : `Entradas de ${formatarCentavos(totalEntradas)}, saídas de ${formatarCentavos(totalSaidas)} e saldo acumulado de ${formatarCentavos(valorFinal)} no período.`;
 
   return (
-    <section className="card min-w-0 gap-0 p-4 sm:p-5" aria-labelledby={`${idBase}-titulo`}>
+    <section className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-lg backdrop-blur-xl flex min-w-0 flex-col justify-between" aria-labelledby={`${idBase}-titulo`}>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div className="min-w-0">
-          <span className="card-kicker">Evolução diária</span>
-          <h2 id={`${idBase}-titulo`} className="card-title mt-1">
+          <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Evolução diária</span>
+          <h2 id={`${idBase}-titulo`} className="mt-0.5 text-lg font-bold tracking-tight text-white font-heading">
             {porCategoria ? `Gasto acumulado · ${categoria.nome}` : "Saldo acumulado"}
           </h2>
-          <p className="mt-1 mb-0 text-[12px] text-(--color-neutral-500)">{rotuloPeriodo}</p>
+          <p className="mt-0.5 mb-0 text-xs text-slate-400">{rotuloPeriodo}</p>
         </div>
-        <label className="flex shrink-0 flex-col gap-1 text-[11px] font-semibold text-(--color-neutral-600)">
+        <label className="flex shrink-0 flex-col gap-1 text-xs font-semibold text-slate-400">
           Categoria
           <span className="relative">
             <select
-              className="input min-w-[190px] appearance-none pr-8 text-[13px]"
+              className="w-full min-w-[190px] rounded-xl border border-slate-800 bg-slate-950 py-2 pl-3 pr-8 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none appearance-none"
               value={categoriaChave}
               onChange={(evento) => setCategoriaChave(evento.target.value)}
             >
@@ -155,7 +155,7 @@ export function DashboardGrafico({
             </select>
             <span
               aria-hidden
-              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[10px] text-(--color-neutral-500)"
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[10px] text-slate-400"
             >
               ▼
             </span>
@@ -165,23 +165,23 @@ export function DashboardGrafico({
 
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>
-          <span className="block text-[10px] font-semibold tracking-[0.08em] text-(--color-neutral-500) uppercase">
+          <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             {porCategoria ? "Total gasto" : "Saldo no período"}
           </span>
           <strong
-            className="text-[20px] leading-tight"
+            className="text-2xl font-bold leading-tight font-heading"
             style={{
               color: porCategoria
                 ? corLinha
                 : valorFinal >= 0
-                  ? "var(--color-income)"
-                  : "var(--color-expense)",
+                  ? "#10b981"
+                  : "#ef4444",
             }}
           >
             {formatarCentavos(porCategoria ? totalSaidas : valorFinal)}
           </strong>
         </div>
-        <span className="text-right text-[10px] leading-tight text-(--color-neutral-500)">
+        <span className="text-right text-[11px] leading-tight text-slate-400">
           Linha acumulada
           <br />
           Barras por dia
@@ -323,7 +323,7 @@ export function DashboardGrafico({
         })}
       </svg>
 
-      <div className="mt-1 flex justify-between text-[10px] text-(--color-neutral-500)">
+      <div className="mt-1 flex justify-between text-[10px] text-slate-400">
         {diasNoPeriodo === 1 ? (
           <span>Dia 1</span>
         ) : (
@@ -334,20 +334,20 @@ export function DashboardGrafico({
           </>
         )}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-(--color-neutral-600)">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-0.5 w-4 rounded-full" style={{ background: corLinha }} />
           {porCategoria ? `Acumulado · ${categoria.nome}` : "Saldo acumulado"}
         </span>
         {!porCategoria && (
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-[2px] bg-(--color-income)" /> Dia positivo
+            <span className="h-2 w-2 rounded-[2px] bg-emerald-500" /> Dia positivo
           </span>
         )}
         <span className="inline-flex items-center gap-1.5">
           <span
             className="h-2 w-2 rounded-[2px]"
-            style={{ background: porCategoria ? corLinha : "var(--color-expense)" }}
+            style={{ background: porCategoria ? corLinha : "#ef4444" }}
           />
           {porCategoria ? "Gasto diário" : "Dia negativo"}
         </span>
@@ -355,7 +355,7 @@ export function DashboardGrafico({
       <p
         id={`${idBase}-resumo`}
         aria-live="polite"
-        className="mt-3 mb-0 rounded-lg bg-(--color-neutral-100) px-3 py-2 text-[12px] text-(--color-neutral-600)"
+        className="mt-3 mb-0 rounded-xl border border-slate-800 bg-slate-950/60 px-3.5 py-2.5 text-xs text-slate-300"
       >
         {resumo}
       </p>
