@@ -52,15 +52,12 @@ export function TransacaoForm({
   const [contaSelecionadaId, setContaSelecionadaId] = useState(transacao?.contaId ?? "");
   const [natureza, setNatureza] = useState(transacao?.natureza ?? "competencia");
 
-  const contaSelecionada = useMemo(
-    () => contas.find((c) => c.id === contaSelecionadaId),
-    [contas, contaSelecionadaId],
-  );
-
   useEffect(() => {
     if (estado.ok && !transacao) {
       formRef.current?.reset();
-      setNatureza("competencia");
+      queueMicrotask(() => {
+        setNatureza("competencia");
+      });
     }
   }, [estado, transacao]);
 

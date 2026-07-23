@@ -1,7 +1,7 @@
 import { and, eq, ne, sql } from "drizzle-orm";
 import { calcularProjecaoFluxoCaixa, type FaturaParaProjecao, type RegraRecorrencia } from "@nexora/core";
 import { db } from "@/db";
-import { contas, faturas, recorrencias, transacoes } from "@/db/schema";
+import { contas, transacoes } from "@/db/schema";
 import { mesAtual } from "@/lib/hoje";
 import { listarFaturasDoUsuario } from "./faturas";
 

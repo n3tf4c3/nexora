@@ -6,7 +6,7 @@ import { categorias, contas } from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo, campo } from "@/components/estilos";
 import { IconeCategoria } from "@/components/icone-categoria";
-import { IconeContas, IconeMais } from "@/components/icones";
+import { IconeMais } from "@/components/icones";
 import { Topo } from "@/components/topo";
 import { hojeISO } from "@/lib/hoje";
 import { usuarioLogadoId } from "@/server/posse";

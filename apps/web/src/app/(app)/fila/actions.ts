@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { parsearValorBRL, transacaoInputSchema } from "@nexora/core";
 import { db } from "@/db";
-import { categorias, contas, faturas, mensagensSms } from "@/db/schema";
+import { categorias, contas, mensagensSms } from "@/db/schema";
 import { obterOuCriarFaturaParaTransacao } from "@/server/faturas";
 import { primeiroErro, uuidValido, type EstadoForm } from "@/server/form";
 import { usuarioLogadoId } from "@/server/posse";

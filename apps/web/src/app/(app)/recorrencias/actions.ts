@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { parsearValorBRL, recorrenciaInputSchema } from "@nexora/core";
+import { parsearValorBRL, recorrenciaInputSchema, type NaturezaTransacao } from "@nexora/core";
 import { db } from "@/db";
 import { transacoes } from "@/db/schema";
 import { uuidValido } from "@/server/form";
@@ -84,7 +84,7 @@ export async function efetivarOcorrenciaPrevistaAction(formData: FormData): Prom
   const contaId = String(formData.get("contaId") ?? "");
   const categoriaId = String(formData.get("categoriaId") || "");
   const tipo = (formData.get("tipo") as "entrada" | "saida") || "saida";
-  const natureza = (formData.get("natureza") as any) || "competencia";
+  const natureza = (formData.get("natureza") as NaturezaTransacao) || "competencia";
   const descricao = String(formData.get("descricao") ?? "");
   const data = String(formData.get("data") ?? "");
   const valorCentavos = Number(formData.get("valorCentavos") ?? "0");

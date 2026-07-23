@@ -2,7 +2,6 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import {
   calcularCicloFatura,
   calcularReconciliacaoFatura,
-  type StatusFatura,
 } from "@nexora/core";
 import { db } from "@/db";
 import { contas, faturas, transacoes } from "@/db/schema";

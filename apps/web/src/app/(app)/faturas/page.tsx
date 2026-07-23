@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
-import { contas } from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { IconeCartao, IconeContas } from "@/components/icones";
 import { Topo } from "@/components/topo";

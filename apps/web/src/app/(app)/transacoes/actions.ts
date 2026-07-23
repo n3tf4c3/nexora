@@ -7,6 +7,7 @@ import {
   distribuirParcelas,
   parsearValorBRL,
   transacaoInputSchema,
+  type NaturezaTransacao,
   type TransacaoInput,
 } from "@nexora/core";
 import { db } from "@/db";
@@ -32,7 +33,7 @@ async function validarTransacao(
     return { erro: "Valor inválido — use o formato 1.234,56." };
   }
 
-  const natureza = (formData.get("natureza") as any) || "competencia";
+  const natureza = (formData.get("natureza") as NaturezaTransacao) || "competencia";
   const contaDestinoId = formData.get("contaDestinoId") || undefined;
 
   const parse = transacaoInputSchema.safeParse({

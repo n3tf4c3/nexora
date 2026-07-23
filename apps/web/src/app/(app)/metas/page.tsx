@@ -1,13 +1,11 @@
-import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
 import { formatarCentavos } from "@nexora/core";
 import { db } from "@/db";
 import { contas } from "@/db/schema";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { botaoPerigo, campo } from "@/components/estilos";
-import { IconeContas, IconeMais } from "@/components/icones";
+import { IconeMais } from "@/components/icones";
 import { Topo } from "@/components/topo";
-import { hojeISO } from "@/lib/hoje";
 import { usuarioLogadoId } from "@/server/posse";
 import { listarMetasDoUsuario } from "@/server/metas";
 import {
