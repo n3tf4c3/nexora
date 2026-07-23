@@ -16,6 +16,7 @@ dist/
 # projeto
 relatorios/
 backups/
+.agents/
 
 # so
 .DS_Store
