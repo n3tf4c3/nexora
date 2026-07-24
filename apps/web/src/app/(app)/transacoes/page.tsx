@@ -38,7 +38,8 @@ export default async function TransacoesPage({
   }>;
 }) {
   const usuarioId = await usuarioLogadoId();
-  const { q, pagina: paginaParam, editar } = await searchParams;
+  const params = (await searchParams) ?? {};
+  const { q, pagina: paginaParam, editar } = params;
   const busca = primeiroValor(q).trim().slice(0, BUSCA_MAX);
   const pagina = Math.max(1, Number.parseInt(primeiroValor(paginaParam) || "1", 10) || 1);
   const editarParam = primeiroValor(editar);

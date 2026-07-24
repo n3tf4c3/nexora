@@ -53,7 +53,8 @@ export default async function Dashboard({
   searchParams: Promise<{ mes?: string }>;
 }) {
   const usuarioId = await usuarioLogadoId();
-  const { mes: mesParam } = await searchParams;
+  const params = (await searchParams) ?? {};
+  const mesParam = params.mes;
   const mesCorrente = mesAtual();
   const hoje = hojeISO();
   const mes = mesParam && ehMesValido(mesParam) ? mesParam : mesCorrente;

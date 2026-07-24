@@ -64,6 +64,27 @@
       "when": 1784062903883,
       "tag": "0008_low_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784762903884,
+      "tag": "0009_cartoes_faturas_semantica",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784762903885,
+      "tag": "0010_recorrencias_projecao",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784762903886,
+      "tag": "0011_metas_investimentos",
+      "breakpoints": true
     }
   ]
 }

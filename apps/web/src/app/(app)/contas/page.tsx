@@ -25,7 +25,8 @@ export default async function ContasPage({
   searchParams: Promise<{ erro?: string }>;
 }) {
   const usuarioId = await usuarioLogadoId();
-  const { erro } = await searchParams;
+  const params = (await searchParams) ?? {};
+  const erro = params.erro;
   const [listaContas, listaCategorias] = await Promise.all([
     db.select().from(contas).where(eq(contas.usuarioId, usuarioId)).orderBy(asc(contas.nome)),
     db
