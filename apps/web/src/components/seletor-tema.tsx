@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export function SeletorTema() {
+export function SeletorTema({ compacto = false }: { compacto?: boolean }) {
   const [tema, setTema] = useState<"dark" | "light">("dark");
   const [montado, setMontado] = useState(false);
 
@@ -16,7 +16,7 @@ export function SeletorTema() {
         document.documentElement.classList.add(salvo);
       } else {
         const prefereEscuro = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const inicial = prefereEscuro ? "dark" : "dark"; // padrão dark no fintech
+        const inicial = prefereEscuro ? "dark" : "dark";
         setTema(inicial);
         document.documentElement.classList.add(inicial);
       }
@@ -33,7 +33,20 @@ export function SeletorTema() {
 
   if (!montado) {
     return (
-      <div className="h-8 w-full rounded-xl bg-slate-800/40 animate-pulse" />
+      <div className={compacto ? "h-8 w-8 rounded-lg bg-slate-800/40 animate-pulse" : "h-8 w-full rounded-xl bg-slate-800/40 animate-pulse"} />
+    );
+  }
+
+  if (compacto) {
+    return (
+      <button
+        type="button"
+        onClick={alternarTema}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-xs transition-all hover:border-indigo-500/40 hover:bg-slate-800 dark-toggle-btn"
+        title={`Alternar para tema ${tema === "dark" ? "claro" : "escuro"}`}
+      >
+        {tema === "dark" ? <span className="text-amber-400">☀️</span> : <span className="text-indigo-400">🌙</span>}
+      </button>
     );
   }
 

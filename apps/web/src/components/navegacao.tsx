@@ -180,9 +180,7 @@ export function NavMobile({
           <span className="text-lg font-bold tracking-tight text-white font-heading">Nexora</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-28">
-            <SeletorTema />
-          </div>
+          <SeletorTema compacto />
           <form action={sair}>
             <button className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1 text-xs font-medium text-slate-300 hover:text-white">
               Sair
