@@ -13,13 +13,29 @@ export const metadata: Metadata = {
   description: "Finanças pessoais, no seu ritmo.",
 };
 
+const scriptScriptAntiFlickerTema = `
+  (function() {
+    try {
+      var salvo = localStorage.getItem('theme');
+      if (salvo === 'light' || salvo === 'dark') {
+        document.documentElement.classList.add(salvo);
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={manrope.variable}>
+    <html lang="pt-BR" className={manrope.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: scriptScriptAntiFlickerTema }} />
+      </head>
       <body>{children}</body>
     </html>
   );

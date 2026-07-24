@@ -17,6 +17,7 @@ import {
   IconeTransacoes,
 } from "./icones";
 import { LogoNexora } from "./logo";
+import { SeletorTema } from "./seletor-tema";
 
 const itens = [
   { href: "/", rotulo: "Dashboard", rotuloMobile: "Início", icone: IconeDashboard },
@@ -145,8 +146,9 @@ export function Sidebar({
       </div>
 
       {/* Footer do Usuário */}
-      <div className="mt-auto border-t border-slate-800/80 pt-3">
-        <div className="mb-2.5 flex items-center justify-between px-2 text-[11px] font-medium text-slate-400">
+      <div className="mt-auto border-t border-slate-800/80 pt-3 space-y-2">
+        <SeletorTema />
+        <div className="flex items-center justify-between px-2 text-[11px] font-medium text-slate-400">
           <span>{hoje}</span>
         </div>
         <form action={sair}>
@@ -177,11 +179,16 @@ export function NavMobile({
           </div>
           <span className="text-lg font-bold tracking-tight text-white font-heading">Nexora</span>
         </div>
-        <form action={sair}>
-          <button className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1 text-xs font-medium text-slate-300 hover:text-white">
-            Sair
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <div className="w-28">
+            <SeletorTema />
+          </div>
+          <form action={sair}>
+            <button className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1 text-xs font-medium text-slate-300 hover:text-white">
+              Sair
+            </button>
+          </form>
+        </div>
       </div>
       <nav aria-label="Navegação principal" className="flex w-full gap-1.5 overflow-x-auto pb-2 scrollbar-none">
         {itens.map((i) => {
